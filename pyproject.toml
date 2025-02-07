@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 [tool.poetry.scripts]
-simplehttpserver = "simplehttpserver.cli:main"
+simplehttpserver = "simplehttpserver.cli:app"
 
 [tool.poetry.dependencies]
 python = "^3.8"

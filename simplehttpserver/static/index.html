@@ -115,6 +115,31 @@
         .upload-progress {
             margin-top: 10px;
         }
+        .file-info-card {
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .file-info-icon {
+            font-size: 48px;
+            color: #909399;
+            margin-bottom: 20px;
+        }
+        .file-info-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #303133;
+            margin-bottom: 10px;
+        }
+        .file-info-details {
+            color: #606266;
+            margin: 5px 0;
+        }
+        .file-info-actions {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -227,21 +252,37 @@
             </div>
             <!-- 文本编辑器 -->
             <el-input
-                v-else
+                v-else-if="previewDialog.isText"
                 v-model="previewDialog.content"
                 type="textarea"
                 :rows="20"
                 :readonly="!previewDialog.editable">
             </el-input>
+            <!-- 文件信息卡片 -->
+            <div v-else class="file-info-card">
+                <div class="file-info-icon">
+                    <el-icon><Document /></el-icon>
+                </div>
+                <div class="file-info-name">{{ previewDialog.title }}</div>
+                <div class="file-info-details">
+                    <div>文件大小：{{ formatFileSize(previewDialog.fileSize) }}</div>
+                    <div>文件类型：{{ previewDialog.mimeType || '未知' }}</div>
+                </div>
+                <div class="file-info-actions">
+                    <el-button type="primary" @click="downloadFile(previewDialog.currentFile)">
+                        下载文件
+                    </el-button>
+                </div>
+            </div>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="previewDialog.visible = false">Close</el-button>
-                    <template v-if="!previewDialog.isImage">
+                    <el-button @click="previewDialog.visible = false">关闭</el-button>
+                    <template v-if="previewDialog.isText">
                         <el-button type="primary" @click="saveFile">
-                            Save
+                            保存
                         </el-button>
                         <el-button type="primary" @click="saveAndClose">
-                            Save & Close
+                            保存并关闭
                         </el-button>
                     </template>
                 </span>
@@ -283,7 +324,10 @@
                     content: '',
                     editable: false,
                     currentFile: null,
-                    isImage: false
+                    isImage: false,
+                    isText: false,
+                    fileSize: 0,
+                    mimeType: ''
                 });
                 const deleteDialog = ref({
                     visible: false,
@@ -361,9 +405,12 @@
                                 content: `/raw/${item.path}`,
                                 editable: false,
                                 currentFile: item,
-                                isImage: true
+                                isImage: true,
+                                isText: false,
+                                fileSize: 0,
+                                mimeType: ''
                             };
-                        } else {
+                        } else if (item.mime_type.startsWith('text/')) {
                             // 对于文本文件，获取内容并显示在编辑器中
                             const response = await fetch(`/api/files/${item.path}`);
                             const data = await response.json();
@@ -377,7 +424,22 @@
                                 content: data.content,
                                 editable: true,
                                 currentFile: item,
-                                isImage: false
+                                isImage: false,
+                                isText: true,
+                                fileSize: item.size,
+                                mimeType: item.mime_type
+                            };
+                        } else {
+                            previewDialog.value = {
+                                visible: true,
+                                title: item.name,
+                                content: '',
+                                editable: false,
+                                currentFile: item,
+                                isImage: false,
+                                isText: false,
+                                fileSize: item.size,
+                                mimeType: item.mime_type
                             };
                         }
                     } catch (error) {
@@ -437,6 +499,13 @@
                     } catch (error) {
                         ElMessage.error('Failed to delete item');
                     }
+                };
+
+                const downloadFile = (item) => {
+                    const a = document.createElement('a');
+                    a.href = item.download_url;
+                    a.download = item.name;
+                    a.click();
                 };
 
                 // 处理文件上传
@@ -589,7 +658,8 @@
                     isImageFile,
                     formatFileSize,
                     handleFileSelect,
-                    handleFileDrop
+                    handleFileDrop,
+                    downloadFile
                 };
             }
         });
