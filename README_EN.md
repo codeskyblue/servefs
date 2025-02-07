@@ -1,4 +1,4 @@
-# Simple HTTP Server
+# Web File Server
 
 A simple file server based on FastAPI and Vue.js, supporting file/folder upload, preview, and management.
 
@@ -18,13 +18,13 @@ A simple file server based on FastAPI and Vue.js, supporting file/folder upload,
 Recommended installation using `pipx` (for dependency isolation):
 
 ```bash
-pipx install simplehttpserver
+pipx install servefs
 ```
 
 Or using pip:
 
 ```bash
-pip install simplehttpserver
+pip install servefs
 ```
 
 ## Usage
@@ -35,16 +35,16 @@ Basic usage:
 
 ```bash
 # Start server in current directory
-simplehttpserver
+servefs
 
 # Specify port
-simplehttpserver --port 7001
+servefs --port 7001
 
 # Specify root directory
-simplehttpserver --root /path/to/directory
+servefs --root /path/to/directory
 
 # Show help
-simplehttpserver --help
+servefs --help
 ```
 
 Complete command line options:
@@ -73,7 +73,7 @@ poetry install
 
 3. Run server:
 ```bash
-poetry run simplehttpserver
+poetry run servefs
 ```
 
 4. Open in browser:

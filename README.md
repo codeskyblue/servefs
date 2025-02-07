@@ -1,4 +1,4 @@
-# Simple HTTP Server
+# Web File Server
 
 [English](README_EN.md)
 
@@ -20,13 +20,13 @@
 推荐使用 `pipx` 安装（保证依赖隔离）：
 
 ```bash
-pipx install simplehttpserver
+pipx install servefs
 ```
 
 或者使用 pip 安装：
 
 ```bash
-pip install simplehttpserver
+pip install servefs
 ```
 
 ## 使用方法
@@ -37,16 +37,16 @@ pip install simplehttpserver
 
 ```bash
 # 在当前目录启动服务器
-simplehttpserver
+servefs
 
 # 指定端口号
-simplehttpserver --port 7001
+servefs --port 7001
 
 # 指定根目录
-simplehttpserver --root /path/to/directory
+servefs --root /path/to/directory
 
 # 查看帮助
-simplehttpserver --help
+servefs --help
 ```
 
 完整的命令行选项：
@@ -75,7 +75,7 @@ poetry install
 
 3. 运行服务器：
 ```bash
-poetry run simplehttpserver
+poetry run servefs
 ```
 
 4. 打开浏览器访问：

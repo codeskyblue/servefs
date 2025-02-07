@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 app = typer.Typer(
-    name="simplehttpserver",
+    name="servefs",
     help="A modern HTTP file server with web UI",
     add_completion=False,
     no_args_is_help=True,
@@ -21,10 +21,10 @@ def version_callback(value: bool):
     if value:
         from importlib.metadata import version
         try:
-            v = version("simplehttpserver")
-            console.print(f"[bold]simplehttpserver[/bold] version: {v}")
+            v = version("servefs")
+            console.print(f"[bold]servefs[/bold] version: {v}")
         except:
-            console.print("[bold]simplehttpserver[/bold] version: 0.0.0")
+            console.print("[bold]servefs[/bold] version: 0.0.0")
         raise typer.Exit()
 
 @app.command(help="Start the HTTP file server")
@@ -85,13 +85,13 @@ def main(
         f"[bold blue]Root directory:[/bold blue] {os.environ['FILE_SERVER_ROOT']}\n"
         f"[bold yellow]Developer mode:[/bold yellow] {'enabled' if reload else 'disabled'}\n"
         "\n[dim]Press Ctrl+C to quit[/dim]",
-        title="Simple HTTP Server",
+        title="Web File Server",
         border_style="blue",
     ))
 
     # Start the server
     uvicorn.run(
-        "simplehttpserver.main:app",
+        "servefs.main:app",
         host=host,
         port=port,
         reload=reload,
