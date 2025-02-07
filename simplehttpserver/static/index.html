@@ -1,0 +1,606 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Browser</title>
+    <!-- Import Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Import Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Import Element Plus Icons -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        .file-browser {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .path-nav {
+            margin-bottom: 20px;
+        }
+        .path-nav .el-breadcrumb__item {
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .path-nav .el-breadcrumb__item:hover {
+            color: #409EFF;
+        }
+        .file-list {
+            border: 1px solid #ebeef5;
+            border-radius: 4px;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-icon {
+            margin-right: 10px;
+            width: 24px;
+            text-align: center;
+            color: #606266;
+        }
+        .file-name {
+            cursor: pointer;
+            flex-grow: 1;
+            font-weight: 500;
+            margin-right: 16px;
+        }
+        .file-name:hover {
+            color: #409EFF;
+        }
+        .file-size {
+            color: #909399;
+            margin-right: 16px;
+            font-size: 0.9em;
+            width: 80px;
+            text-align: right;
+        }
+        .file-actions {
+            margin-left: auto;
+        }
+        .file-actions .el-button {
+            margin-left: 8px;
+        }
+        .image-preview {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            max-height: 70vh;
+        }
+        .image-preview img {
+            max-width: 100%;
+            max-height: 70vh;
+            height: auto;
+            object-fit: contain;
+            border: 1px solid lightgray;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .upload-area {
+            border: 2px dashed #dcdfe6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: #409eff;
+            background-color: rgba(64, 158, 255, 0.1);
+        }
+        .upload-area .el-icon {
+            font-size: 48px;
+            color: #909399;
+            margin-bottom: 10px;
+        }
+        .upload-text {
+            color: #606266;
+            margin: 10px 0;
+        }
+        .upload-tip {
+            color: #909399;
+            font-size: 0.9em;
+        }
+        .upload-progress {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="file-browser">
+        <el-container>
+            <el-header>
+                <h1>File Browser</h1>
+            </el-header>
+            
+            <el-main>
+                <!-- 上传区域 -->
+                <div
+                    class="upload-area"
+                    :class="{ 'drag-over': isDragOver }"
+                    @dragenter.prevent="isDragOver = true"
+                    @dragleave.prevent="isDragOver = false"
+                    @dragover.prevent
+                    @drop.prevent="handleFileDrop"
+                    @click="$refs.fileInput.click()">
+                    <input
+                        type="file"
+                        ref="fileInput"
+                        multiple
+                        webkitdirectory
+                        style="display: none"
+                        @change="handleFileSelect">
+                    <el-icon><upload-filled /></el-icon>
+                    <div class="upload-text">
+                        <span>拖放文件或文件夹到此处或点击上传</span>
+                    </div>
+                    <div class="upload-tip">支持多文件和文件夹上传</div>
+                </div>
+
+                <!-- 上传进度 -->
+                <div v-if="uploadProgress.length > 0" class="upload-progress">
+                    <el-progress
+                        v-for="(progress, index) in uploadProgress"
+                        :key="index"
+                        :percentage="progress.percentage"
+                        :text="progress.filename"
+                        :status="progress.status === 'primary' ? '' : progress.status">
+                    </el-progress>
+                </div>
+
+                <div class="path-nav">
+                    <el-breadcrumb separator="/">
+                        <el-breadcrumb-item @click="navigateTo('')">Home</el-breadcrumb-item>
+                        <el-breadcrumb-item 
+                            v-for="(segment, index) in pathSegments" 
+                            :key="index"
+                            @click="navigateTo(getPathUpTo(index))">
+                            {{ segment }}
+                        </el-breadcrumb-item>
+                    </el-breadcrumb>
+                </div>
+
+                <div class="file-list">
+                    <template v-if="fileList.length">
+                        <div v-for="item in fileList" :key="item.path" class="file-item">
+                            <div class="file-icon">
+                                <el-icon v-if="item.type === 'directory'"><Folder /></el-icon>
+                                <el-icon v-else-if="isImageFile(item.name)"><picture-filled /></el-icon>
+                                <el-icon v-else><Document /></el-icon>
+                            </div>
+                            <span class="file-name" @click="handleItemClick(item)">
+                                {{ item.name }}
+                            </span>
+                            <span v-if="item.type === 'file'" class="file-size">
+                                {{ formatFileSize(item.size) }}
+                            </span>
+                            <div class="file-actions">
+                                <el-button-group>
+                                    <a 
+                                        v-if="item.type === 'file'" 
+                                        :href="item.download_url"
+                                        target="_blank"
+                                        class="el-button el-button--primary el-button--small"
+                                        style="text-decoration: none;">
+                                        Download
+                                    </a>
+                                    <el-button 
+                                        type="danger" 
+                                        size="small" 
+                                        @click.stop="showDeleteDialog(item)">
+                                        Delete
+                                    </el-button>
+                                </el-button-group>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="file-item">
+                            <span>No files found</span>
+                        </div>
+                    </template>
+                </div>
+            </el-main>
+        </el-container>
+
+        <!-- File Preview Dialog -->
+        <el-dialog 
+            v-model="previewDialog.visible" 
+            :title="previewDialog.title" 
+            width="70%"
+            :top="'5vh'"
+            :fullscreen="false">
+            <!-- 图片预览 -->
+            <div v-if="previewDialog.isImage" class="image-preview">
+                <img :src="previewDialog.content" :alt="previewDialog.title">
+            </div>
+            <!-- 文本编辑器 -->
+            <el-input
+                v-else
+                v-model="previewDialog.content"
+                type="textarea"
+                :rows="20"
+                :readonly="!previewDialog.editable">
+            </el-input>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="previewDialog.visible = false">Close</el-button>
+                    <template v-if="!previewDialog.isImage">
+                        <el-button type="primary" @click="saveFile">
+                            Save
+                        </el-button>
+                        <el-button type="primary" @click="saveAndClose">
+                            Save & Close
+                        </el-button>
+                    </template>
+                </span>
+            </template>
+        </el-dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <el-dialog
+            v-model="deleteDialog.visible"
+            :title="deleteDialog.title"
+            width="30%"
+            center>
+            <span>{{ deleteDialog.message }}</span>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="deleteDialog.visible = false">Cancel</el-button>
+                    <el-button type="danger" @click="confirmDelete">
+                        Delete
+                    </el-button>
+                </span>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+        const { ElMessage } = ElementPlus;
+        
+        const app = createApp({
+            setup() {
+                const currentPath = ref('');
+                const fileList = ref([]);
+                const isDragOver = ref(false);
+                const uploadProgress = ref([]);
+                const fileInput = ref(null);
+                const previewDialog = ref({
+                    visible: false,
+                    title: '',
+                    content: '',
+                    editable: false,
+                    currentFile: null,
+                    isImage: false
+                });
+                const deleteDialog = ref({
+                    visible: false,
+                    title: '',
+                    message: ''
+                });
+
+                // Get initial path from URL
+                const initPath = () => {
+                    const path = window.location.pathname;
+                    if (path.startsWith('/blob/')) {
+                        return path.substring(6); // Remove '/blob/' prefix
+                    }
+                    return '';
+                };
+
+                const pathSegments = computed(() => {
+                    return currentPath.value ? currentPath.value.split('/') : [];
+                });
+
+                const getPathUpTo = (index) => {
+                    return pathSegments.value.slice(0, index + 1).join('/');
+                };
+
+                const navigateTo = (path) => {
+                    const urlPath = path ? `/blob/${path}` : '/';
+                    history.pushState(null, '', urlPath);
+                    loadFiles(path);
+                };
+
+                const loadFiles = async (path = '') => {
+                    try {
+                        const response = await fetch(`/api/files?path=${path}`);
+                        const data = await response.json();
+                        if (data.error) {
+                            ElMessage.error(data.error);
+                            return;
+                        }
+                        fileList.value = data.items;
+                        currentPath.value = data.current_path;
+                    } catch (error) {
+                        ElMessage.error('Failed to load files');
+                    }
+                };
+
+                const handleItemClick = (item) => {
+                    if (item.type === 'directory') {
+                        navigateTo(item.path);
+                    } else {
+                        openFile(item);
+                    }
+                };
+
+                // 检查文件是否为图片
+                const isImageFile = (filename) => {
+                    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+                    return imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+                };
+
+                const formatFileSize = (bytes) => {
+                    if (bytes === 0) return '0 B';
+                    const k = 1024;
+                    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                };
+
+                const openFile = async (item) => {
+                    try {
+                        if (isImageFile(item.name)) {
+                            // 对于图片文件，使用 /raw/ 路由来获取原始图片
+                            previewDialog.value = {
+                                visible: true,
+                                title: item.name,
+                                content: `/raw/${item.path}`,
+                                editable: false,
+                                currentFile: item,
+                                isImage: true
+                            };
+                        } else {
+                            // 对于文本文件，获取内容并显示在编辑器中
+                            const response = await fetch(`/api/files/${item.path}`);
+                            const data = await response.json();
+                            if (data.error) {
+                                ElMessage.error(data.error);
+                                return;
+                            }
+                            previewDialog.value = {
+                                visible: true,
+                                title: item.name,
+                                content: data.content,
+                                editable: true,
+                                currentFile: item,
+                                isImage: false
+                            };
+                        }
+                    } catch (error) {
+                        ElMessage.error('Failed to open file');
+                    }
+                };
+
+                const saveFile = async () => {
+                    try {
+                        const response = await fetch(`/api/files/${previewDialog.value.currentFile.path}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                content: previewDialog.value.content
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.error) {
+                            ElMessage.error(data.error);
+                            return;
+                        }
+                        ElMessage.success('File saved successfully');
+                    } catch (error) {
+                        ElMessage.error('Failed to save file');
+                    }
+                };
+
+                const saveAndClose = async () => {
+                    await saveFile();
+                    previewDialog.value.visible = false;
+                };
+
+                const showDeleteDialog = (item) => {
+                    deleteDialog.value = {
+                        visible: true,
+                        title: `Delete ${item.name}?`,
+                        message: `Are you sure you want to delete ${item.name}?`
+                    };
+                    deleteDialog.value.currentFile = item;
+                };
+
+                const confirmDelete = async () => {
+                    try {
+                        const response = await fetch(`/api/files/${deleteDialog.value.currentFile.path}`, {
+                            method: 'DELETE'
+                        });
+                        const data = await response.json();
+                        if (data.error) {
+                            ElMessage.error(data.error);
+                            return;
+                        }
+                        ElMessage.success('Item deleted successfully');
+                        await loadFiles(currentPath.value);
+                        deleteDialog.value.visible = false;
+                    } catch (error) {
+                        ElMessage.error('Failed to delete item');
+                    }
+                };
+
+                // 处理文件上传
+                const uploadFiles = async (files) => {
+                    const formData = new FormData();
+                    const totalFiles = files.length;
+                    let processedFiles = 0;
+
+                    // 创建一个 Map 来存储文件夹结构
+                    const folderStructure = new Map();
+
+                    // 处理所有文件，构建文件夹结构
+                    for (const file of files) {
+                        const relativePath = file.webkitRelativePath || file.name;
+                        const pathParts = relativePath.split('/');
+                        
+                        // 如果是文件夹中的文件
+                        if (pathParts.length > 1) {
+                            const folderPath = pathParts.slice(0, -1).join('/');
+                            // 记录文件夹路径
+                            folderStructure.set(folderPath, true);
+                        }
+
+                        formData.append('files', file);
+                        // 添加文件的相对路径信息
+                        formData.append('paths', relativePath);
+                        
+                        // 添加上传进度条
+                        uploadProgress.value.push({
+                            filename: relativePath,
+                            percentage: 0,
+                            status: ''  // 默认状态为空
+                        });
+                    }
+
+                    try {
+                        const response = await fetch(`/api/upload/${currentPath.value}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (data.error) {
+                            ElMessage.error(data.error);
+                            uploadProgress.value.forEach(p => p.status = 'error');
+                            return;
+                        }
+                        ElMessage.success('文件上传成功');
+                        // 更新进度条
+                        uploadProgress.value.forEach(p => {
+                            p.percentage = 100;
+                            p.status = 'success';
+                        });
+                        // 清理进度条
+                        setTimeout(() => {
+                            uploadProgress.value = [];
+                        }, 2000);
+                        // 刷新文件列表
+                        await loadFiles(currentPath.value);
+                    } catch (error) {
+                        ElMessage.error('文件上传失败');
+                        uploadProgress.value.forEach(p => p.status = 'error');
+                    }
+                };
+
+                const handleFileSelect = (event) => {
+                    const files = event.target.files;
+                    if (files.length > 0) {
+                        uploadFiles(files);
+                        event.target.value = ''; // 清理选择，允许重复选择相同文件
+                    }
+                };
+
+                const handleFileDrop = async (event) => {
+                    isDragOver.value = false;
+                    const items = event.dataTransfer.items;
+                    const files = [];
+
+                    // 递归获取文件夹中的所有文件
+                    const getFiles = async (entry) => {
+                        if (entry.isFile) {
+                            const file = await new Promise((resolve) => entry.file(resolve));
+                            // 保存完整路径信息
+                            file.webkitRelativePath = entry.fullPath.substring(1); // 移除开头的 '/'
+                            files.push(file);
+                        } else if (entry.isDirectory) {
+                            const reader = entry.createReader();
+                            const entries = await new Promise((resolve) => {
+                                reader.readEntries(resolve);
+                            });
+                            for (const childEntry of entries) {
+                                await getFiles(childEntry);
+                            }
+                        }
+                    };
+
+                    // 处理所有拖放的项目
+                    for (const item of items) {
+                        if (item.kind === 'file') {
+                            const entry = item.webkitGetAsEntry();
+                            if (entry) {
+                                await getFiles(entry);
+                            }
+                        }
+                    }
+
+                    if (files.length > 0) {
+                        uploadFiles(files);
+                    }
+                };
+
+                // 添加键盘快捷键支持
+                const handleKeydown = (e) => {
+                    if (previewDialog.value.visible && (e.metaKey || e.ctrlKey) && e.key === 's') {
+                        e.preventDefault(); // 阻止浏览器默认的保存行为
+                        saveFile();
+                    }
+                };
+
+                // Handle browser back/forward buttons
+                window.addEventListener('popstate', () => {
+                    loadFiles(initPath());
+                });
+
+                // Load initial files based on URL path
+                onMounted(() => {
+                    loadFiles(initPath());
+                    window.addEventListener('keydown', handleKeydown);
+                });
+
+                onUnmounted(() => {
+                    window.removeEventListener('keydown', handleKeydown);
+                });
+
+                return {
+                    fileList,
+                    currentPath,
+                    pathSegments,
+                    previewDialog,
+                    deleteDialog,
+                    isDragOver,
+                    uploadProgress,
+                    fileInput,
+                    handleItemClick,
+                    navigateTo,
+                    getPathUpTo,
+                    saveFile,
+                    saveAndClose,
+                    showDeleteDialog,
+                    confirmDelete,
+                    isImageFile,
+                    formatFileSize,
+                    handleFileSelect,
+                    handleFileDrop
+                };
+            }
+        });
+
+        // Use Element Plus
+        app.use(ElementPlus);
+        // Register all icons
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+        app.mount('#app');
+    </script>
+</body>
+</html>
