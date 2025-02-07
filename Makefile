@@ -1,2 +1,2 @@
 dev:
-	uvicorn servefs.main:app --reload --port 8003
+	npx nodemon -e "js html py" --exec "uvicorn servefs.main:app --port 7001"

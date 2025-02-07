@@ -59,8 +59,8 @@ async def get_file_content(file_path: str, request: Request):
         if mime_type is None:
             mime_type = "application/octet-stream"
         
-        # Only read text files
-        if not mime_type.startswith('text/'):
+        # Read text files and JSON files
+        if not (mime_type.startswith('text/') or mime_type == 'application/json'):
             return {"error": "Unsupported file type"}
             
         try:

@@ -140,6 +140,17 @@
         .file-info-actions {
             margin-top: 20px;
         }
+        .font-preview {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .preview-text {
+            margin-bottom: 20px;
+        }
+        .preview-sizes div {
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -271,6 +282,22 @@
                 :rows="20"
                 :readonly="!previewDialog.editable">
             </el-input>
+            <!-- 字体预览 -->
+            <div v-else-if="previewDialog.isFont" class="font-preview">
+                <div class="preview-text">
+                    <el-input v-model="previewText" placeholder="输入预览文字">
+                    </el-input>
+                </div>
+                <div class="preview-sizes">
+                    <div v-for="size in [12, 16, 24, 32, 48]" :key="size">
+                        <div>{{ size }}px</div>
+                        <div :style="{
+                            fontSize: size + 'px',
+                            fontFamily: previewDialog.fontFamily
+                        }">{{ previewText }}</div>
+                    </div>
+                </div>
+            </div>
             <!-- 文件信息卡片 -->
             <div v-else class="file-info-card">
                 <div class="file-info-icon">
@@ -340,6 +367,9 @@
                     currentFile: null,
                     isImage: false,
                     isText: false,
+                    isFont: false,
+                    fontUrl: '',
+                    fontFamily: '',
                     fileSize: 0,
                     mimeType: ''
                 });
@@ -348,6 +378,7 @@
                     title: '',
                     message: ''
                 });
+                const previewText = ref('Hello 你好 こんにちは 123');
 
                 // Get initial path from URL
                 const initPath = () => {
@@ -421,11 +452,30 @@
                                 currentFile: item,
                                 isImage: true,
                                 isText: false,
+                                isFont: false,
+                                fontUrl: '',
+                                fontFamily: '',
                                 fileSize: 0,
                                 mimeType: ''
                             };
-                        } else if (item.mime_type.startsWith('text/')) {
-                            // 对于文本文件，获取内容并显示在编辑器中
+                        } else if (item.name.toLowerCase().endsWith('.ttf')) {
+                            // TTF 字体文件预览
+                            previewDialog.value = {
+                                visible: true,
+                                title: item.name,
+                                content: '',
+                                editable: false,
+                                currentFile: item,
+                                isImage: false,
+                                isText: false,
+                                isFont: true,
+                                fontUrl: `/raw/${item.path}`,
+                                fontFamily: '',
+                                fileSize: item.size,
+                                mimeType: 'font/ttf'
+                            };
+                        } else if (item.mime_type.startsWith('text/') || item.mime_type === 'application/json') {
+                            // 对于文本文件和 JSON 文件，获取内容并显示在编辑器中
                             const response = await fetch(`/api/files/${item.path}`);
                             const data = await response.json();
                             if (data.error) {
@@ -440,6 +490,9 @@
                                 currentFile: item,
                                 isImage: false,
                                 isText: true,
+                                isFont: false,
+                                fontUrl: '',
+                                fontFamily: '',
                                 fileSize: item.size,
                                 mimeType: item.mime_type
                             };
@@ -452,6 +505,9 @@
                                 currentFile: item,
                                 isImage: false,
                                 isText: false,
+                                isFont: false,
+                                fontUrl: '',
+                                fontFamily: '',
                                 fileSize: item.size,
                                 mimeType: item.mime_type
                             };
@@ -653,6 +709,21 @@
                     window.removeEventListener('keydown', handleKeydown);
                 });
 
+                watch(() => previewDialog.value.fontUrl, (newUrl) => {
+                    if (newUrl && previewDialog.value.isFont) {
+                        const fontFamily = 'PreviewFont_' + Date.now();
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            @font-face {
+                                font-family: '${fontFamily}';
+                                src: url('${newUrl}') format('truetype');
+                            }
+                        `;
+                        document.head.appendChild(style);
+                        previewDialog.value.fontFamily = fontFamily;
+                    }
+                });
+
                 return {
                     fileList,
                     currentPath,
@@ -674,7 +745,8 @@
                     formatFileSize,
                     handleFileSelect,
                     handleFileDrop,
-                    downloadFile
+                    downloadFile,
+                    previewText
                 };
             }
         });
