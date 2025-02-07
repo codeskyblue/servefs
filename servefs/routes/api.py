@@ -36,7 +36,7 @@ async def list_files(path: str = "", request: Request = None):
             except Exception:
                 continue
 
-        # 按目录优先、名字升序排序
+        # Sort by directory first, then by name ascending
         items.sort(key=lambda x: (x["type"] != "directory", x["name"].lower()))
         
         return {
@@ -48,26 +48,26 @@ async def list_files(path: str = "", request: Request = None):
 
 @router.get("/files/{file_path:path}")
 async def get_file_content(file_path: str, request: Request):
-    """获取文件内容"""
+    """Get file content"""
     try:
         file_path = request.app.state.ROOT_DIR / file_path
         if not file_path.exists() or not file_path.is_file():
-            return {"error": "文件不存在"}
+            return {"error": "File not found"}
         
-        # 获取文件的 MIME 类型
+        # Get file MIME type
         mime_type, _ = mimetypes.guess_type(str(file_path))
         if mime_type is None:
             mime_type = "application/octet-stream"
         
-        # 只读取文本文件
+        # Only read text files
         if not mime_type.startswith('text/'):
-            return {"error": "不支持的文件类型"}
+            return {"error": "Unsupported file type"}
             
         try:
             content = file_path.read_text(encoding='utf-8')
             return {"content": content}
         except UnicodeDecodeError:
-            return {"error": "不支持的文件编码"}
+            return {"error": "Unsupported file encoding"}
         
     except Exception as e:
         return {"error": str(e)}
@@ -114,16 +114,16 @@ async def upload_files(path: str, files: list[UploadFile] = File(...), paths: li
         uploaded_files = []
         for file, relative_path in zip(files, paths):
             try:
-                # 将 Windows 路径分隔符转换为 POSIX 格式
+                # Convert Windows path separators to POSIX format
                 relative_path = relative_path.replace("\\", "/")
                 
-                # 构建完整的目标路径
+                # Build complete target path
                 file_path = target_path / relative_path
                 
-                # 确保父目录存在
+                # Ensure parent directory exists
                 file_path.parent.mkdir(parents=True, exist_ok=True)
                 
-                # 如果文件已存在，添加数字后缀
+                # If file exists, add numeric suffix
                 original_path = file_path
                 counter = 1
                 while file_path.exists():
@@ -132,7 +132,7 @@ async def upload_files(path: str, files: list[UploadFile] = File(...), paths: li
                     file_path = original_path.parent / f"{stem}_{counter}{suffix}"
                     counter += 1
 
-                # 保存文件
+                # Save file
                 with open(file_path, "wb") as f:
                     shutil.copyfileobj(file.file, f)
                 

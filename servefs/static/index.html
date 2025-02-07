@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Browser</title>
+    <title>ServeFS</title>
     <!-- Import Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- Import Element Plus -->
@@ -41,6 +41,8 @@
             border-bottom: none;
         }
         .file-icon {
+            display: flex;
+            justify-content: center;
             margin-right: 10px;
             width: 24px;
             text-align: center;
@@ -49,7 +51,6 @@
         .file-name {
             cursor: pointer;
             flex-grow: 1;
-            font-weight: 500;
             margin-right: 16px;
         }
         .file-name:hover {
@@ -145,7 +146,7 @@
     <div id="app" class="file-browser">
         <el-container>
             <el-header>
-                <h1>File Browser</h1>
+                <h1>ServeFS File Browser</h1>
             </el-header>
             
             <el-main>
@@ -198,7 +199,7 @@
 
                 <div class="path-nav">
                     <el-breadcrumb separator="/">
-                        <el-breadcrumb-item @click="navigateTo('')">Home</el-breadcrumb-item>
+                        <el-breadcrumb-item @click="navigateTo('')">🏠 Home</el-breadcrumb-item>
                         <el-breadcrumb-item 
                             v-for="(segment, index) in pathSegments" 
                             :key="index"

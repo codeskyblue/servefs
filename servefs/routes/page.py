@@ -4,14 +4,14 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import mimetypes
 
-# 获取当前模块的路径
+# Get current module path
 PACKAGE_DIR = Path(__file__).parent.parent
 
 router = APIRouter(tags=["page"])
 
 # Mount static files for direct access to static assets
 def init_static_files(app):
-    """初始化静态文件服务"""
+    """Initialize static file serving"""
     app.mount("/static", StaticFiles(directory=PACKAGE_DIR / "static"), name="static")
 
 # Serve index.html for the root path
@@ -34,7 +34,7 @@ async def get_raw_file(file_path: str, request: Request):
         if not file_path.exists() or not file_path.is_file():
             raise HTTPException(status_code=404, detail="File not found")
         
-        # 获取文件的 MIME 类型
+        # Get file MIME type
         mime_type, _ = mimetypes.guess_type(str(file_path))
         if mime_type is None:
             mime_type = "application/octet-stream"

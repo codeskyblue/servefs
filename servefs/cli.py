@@ -1,3 +1,4 @@
+import inspect
 import os
 from pathlib import Path
 from typing import Optional
@@ -76,13 +77,14 @@ def main(
     """
     # Set root directory environment variable
     root_path = root.absolute()
-    os.environ["FILE_SERVER_ROOT"] = str(root_path)
+    os.environ["SERVEFS_ROOT"] = str(root_path)
+    os.environ["SERVEFS_DEBUG"] = "true" if reload else "false"
     
     # Display server information
     console.print(Panel.fit(
         f"[bold green]Starting server at[/bold green]\n"
         f"[bold]http://{host}:{port}[/bold]\n"
-        f"[bold blue]Root directory:[/bold blue] {os.environ['FILE_SERVER_ROOT']}\n"
+        f"[bold blue]Root directory:[/bold blue] {os.environ['SERVEFS_ROOT']}\n"
         f"[bold yellow]Developer mode:[/bold yellow] {'enabled' if reload else 'disabled'}\n"
         "\n[dim]Press Ctrl+C to quit[/dim]",
         title="Web File Server",
@@ -95,6 +97,7 @@ def main(
         host=host,
         port=port,
         reload=reload,
+        reload_dirs=[Path(__file__).parent],
         log_level="info",
     )
 
