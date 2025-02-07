@@ -5,6 +5,7 @@ description = "A modern HTTP file server with web UI"
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [{include = "servefs"}]
+homepage = "https://github.com/codeskyblue/servefs"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
@@ -18,7 +19,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-    "Topic :: System :: Networking :: File Sharing",
 ]
 
 [tool.poetry.scripts]

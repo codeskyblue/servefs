@@ -48,14 +48,14 @@ def main(
         max=65535,
     ),
     host: str = typer.Option(
-        "127.0.0.1",
+        "0.0.0.0",
         "--host",
-        help="Server host address, defaults to 127.0.0.1",
+        help="Server host address, defaults to 0.0.0.0",
     ),
-    reload: bool = typer.Option(
+    debug: bool = typer.Option(
         False,
-        "--reload",
-        help="Enable developer mode with automatic code reloading",
+        "--debug",
+        help="Enable developer mode with /docs and /redoc support",
     ),
     version: Optional[bool] = typer.Option(
         None,
@@ -78,14 +78,14 @@ def main(
     # Set root directory environment variable
     root_path = root.absolute()
     os.environ["SERVEFS_ROOT"] = str(root_path)
-    os.environ["SERVEFS_DEBUG"] = "true" if reload else "false"
+    os.environ["SERVEFS_DEBUG"] = "true" if debug else "false"
     
     # Display server information
     console.print(Panel.fit(
         f"[bold green]Starting server at[/bold green]\n"
         f"[bold]http://{host}:{port}[/bold]\n"
         f"[bold blue]Root directory:[/bold blue] {os.environ['SERVEFS_ROOT']}\n"
-        f"[bold yellow]Developer mode:[/bold yellow] {'enabled' if reload else 'disabled'}\n"
+        f"[bold yellow]Developer mode:[/bold yellow] {'enabled' if debug else 'disabled'}\n"
         "\n[dim]Press Ctrl+C to quit[/dim]",
         title="Web File Server",
         border_style="blue",
@@ -96,8 +96,6 @@ def main(
         "servefs.main:app",
         host=host,
         port=port,
-        reload=reload,
-        reload_dirs=[Path(__file__).parent],
         log_level="info",
     )
 
