@@ -1,4 +1,4 @@
-# Web File Server
+# ServeFS
 
 [English](README_EN.md)
 

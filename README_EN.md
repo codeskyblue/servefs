@@ -1,4 +1,4 @@
-# Web File Server
+# ServeFS
 
 A simple file server based on FastAPI and Vue.js, supporting file/folder upload, preview, and management.
 

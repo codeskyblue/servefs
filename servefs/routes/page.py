@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 import mimetypes
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 # Get current module path
 PACKAGE_DIR = Path(__file__).parent.parent

@@ -75,5 +75,5 @@ poetry run black .
 
 2. isort: Python import 语句排序
 ```bash
-poetry run isort .
+poetry run python -m isort .
 ```

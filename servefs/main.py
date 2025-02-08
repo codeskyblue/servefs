@@ -1,8 +1,11 @@
-from fastapi import FastAPI
-from pathlib import Path
 import os
+from pathlib import Path
+
+from fastapi import FastAPI
+
 from .routes.api import router as api_router
-from .routes.page import router as page_router, init_static_files
+from .routes.page import init_static_files
+from .routes.page import router as page_router
 
 # Get debug mode from environment variable
 DEBUG = os.getenv("SERVEFS_DEBUG", "false").lower() == "true"

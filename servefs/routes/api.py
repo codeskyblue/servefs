@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Request, HTTPException, UploadFile, File, Form
-from fastapi.responses import JSONResponse, FileResponse
-import shutil
-from pathlib import Path
 import mimetypes
+import shutil
+
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
 router = APIRouter(prefix="/api", tags=["api"])
 
