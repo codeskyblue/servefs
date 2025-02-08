@@ -1,0 +1,6 @@
+recursive-include servefs/static *
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude __pycache__
+global-exclude .git*

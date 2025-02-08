@@ -5,6 +5,7 @@ description = "A modern HTTP file server with web UI"
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [{include = "servefs"}]
+include = ["servefs/static/**/*"]
 homepage = "https://github.com/codeskyblue/servefs"
 classifiers = [
     "Development Status :: 4 - Beta",

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ServeFS</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <!-- Import Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- Import Element Plus -->
@@ -70,6 +71,8 @@
             margin-left: 8px;
         }
         .image-preview {
+            position: relative;
+            outline: none;
             text-align: center;
             display: flex;
             justify-content: center;
@@ -82,6 +85,21 @@
             max-height: 70vh;
             height: auto;
             object-fit: contain;
+            border: 1px solid lightgray;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .video-preview {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            max-height: 70vh;
+        }
+        .video-preview video {
+            max-width: 100%;
+            max-height: 70vh;
             border: 1px solid lightgray;
             border-radius: 4px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -159,6 +177,37 @@
             word-break: break-all;
             tab-size: 4;
         }
+        .preview-nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 20px;
+            transition: all 0.3s;
+            z-index: 10;
+            opacity: 0;
+        }
+        .image-preview:hover .preview-nav-button {
+            opacity: 1;
+        }
+        .preview-nav-button:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .preview-prev {
+            left: 20px;
+        }
+        .preview-next {
+            right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -232,9 +281,10 @@
                     <template v-if="fileList.length">
                         <div v-for="item in fileList" :key="item.path" class="file-item">
                             <div class="file-icon">
-                                <el-icon v-if="item.type === 'directory'"><Folder /></el-icon>
+                                <el-icon v-if="item.type === 'directory'"><folder /></el-icon>
                                 <el-icon v-else-if="isImageFile(item.name)"><picture-filled /></el-icon>
-                                <el-icon v-else><Document /></el-icon>
+                                <el-icon v-else-if="isVideoFile(item.name)"><video-play /></el-icon>
+                                <el-icon v-else><document /></el-icon>
                             </div>
                             <span class="file-name" @click="handleItemClick(item)">
                                 {{ item.name }}
@@ -285,8 +335,16 @@
             :top="'5vh'"
             :fullscreen="false">
             <!-- 图片预览 -->
-            <div v-if="previewDialog.isImage" class="image-preview">
+            <div v-if="previewDialog.isImage" class="image-preview" tabindex="0" ref="imagePreview" @keydown="handleImageKeydown">
+                <el-icon class="preview-nav-button preview-prev" @click="showPrevImage" v-if="hasPrevImage"><arrow-left /></el-icon>
                 <img :src="previewDialog.content" :alt="previewDialog.title">
+                <el-icon class="preview-nav-button preview-next" @click="showNextImage" v-if="hasNextImage"><arrow-right /></el-icon>
+            </div>
+            <!-- 视频预览 -->
+            <div v-else-if="previewDialog.isVideo" class="video-preview">
+                <video controls :src="previewDialog.content">
+                    Your browser does not support the video tag.
+                </video>
             </div>
             <!-- 文本编辑器 -->
             <el-input
@@ -364,7 +422,7 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
+        const { createApp, ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
         const { ElMessage, ElMessageBox } = ElementPlus;
         
         const app = createApp({
@@ -382,12 +440,14 @@
                     editable: false,
                     currentFile: null,
                     isImage: false,
+                    isVideo: false,
                     isText: false,
                     isFont: false,
                     fontUrl: '',
                     fontFamily: '',
                     fileSize: 0,
-                    mimeType: ''
+                    mimeType: '',
+                    currentImageIndex: -1
                 });
                 const deleteDialog = ref({
                     visible: false,
@@ -448,6 +508,12 @@
                     return imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
                 };
 
+                // 检查文件是否为视频
+                const isVideoFile = (filename) => {
+                    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.mkv', '.avi'];
+                    return videoExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+                };
+
                 const formatFileSize = (bytes) => {
                     if (bytes === 0) return '0 B';
                     const k = 1024;
@@ -460,10 +526,11 @@
                     return {
                         visible: true,
                         title: item.name,
-                        content: type === 'image' ? `/raw/${item.path}` : '',
+                        content: (type === 'image' || type === 'video') ? `/raw/${item.path}` : '',
                         editable: type === 'text',
                         currentFile: item,
                         isImage: type === 'image',
+                        isVideo: type === 'video',
                         isText: type === 'text',
                         isFont: type === 'font',
                         fontUrl: type === 'font' ? `/raw/${item.path}` : '',
@@ -477,6 +544,8 @@
                     try {
                         if (isImageFile(item.name)) {
                             previewDialog.value = createPreviewConfig(item, 'image');
+                        } else if (isVideoFile(item.name)) {
+                            previewDialog.value = createPreviewConfig(item, 'video');
                         } else if (item.name.toLowerCase().endsWith('.ttf')) {
                             previewDialog.value = createPreviewConfig(item, 'font');
                         } else if (item.mime_type.startsWith('text/') || item.mime_type === 'application/json') {
@@ -708,6 +777,70 @@
                     }
                 });
 
+                // 图片导航相关
+                const imageList = ref([]);
+                const hasPrevImage = computed(() => previewDialog.value.isImage && previewDialog.value.currentImageIndex > 0);
+                const hasNextImage = computed(() => previewDialog.value.isImage && previewDialog.value.currentImageIndex < imageList.value.length - 1);
+                const imagePreview = ref(null);
+
+                // 获取同级目录中的所有图片
+                const getImageListInCurrentDir = () => {
+                    return fileList.value.filter(file => isImageFile(file.name));
+                };
+
+                // 显示上一张图片
+                const showPrevImage = () => {
+                    if (hasPrevImage.value) {
+                        const prevImage = imageList.value[previewDialog.value.currentImageIndex - 1];
+                        updatePreviewImage(prevImage, previewDialog.value.currentImageIndex - 1);
+                    }
+                };
+
+                // 显示下一张图片
+                const showNextImage = () => {
+                    if (hasNextImage.value) {
+                        const nextImage = imageList.value[previewDialog.value.currentImageIndex + 1];
+                        updatePreviewImage(nextImage, previewDialog.value.currentImageIndex + 1);
+                    }
+                };
+
+                // 更新预览图片
+                const updatePreviewImage = (image, index) => {
+                    if (image) {
+                        previewDialog.value.currentImageIndex = index;
+                        previewDialog.value.title = image.name;
+                        previewDialog.value.content = `/raw/${image.path}`;
+                        previewDialog.value.currentFile = image;
+                    }
+                };
+
+                // 处理图片预览时的键盘事件
+                const handleImageKeydown = (event) => {
+                    if (event.key === 'ArrowLeft') {
+                        showPrevImage();
+                    } else if (event.key === 'ArrowRight') {
+                        showNextImage();
+                    }
+                };
+
+                // 监听预览对话框显示状态
+                watch(() => previewDialog.value.visible, (newVisible) => {
+                    if (newVisible && previewDialog.value.isImage) {
+                        // 当显示图片预览时，获取同级目录的图片列表
+                        imageList.value = getImageListInCurrentDir();
+                        // 设置当前图片索引
+                        previewDialog.value.currentImageIndex = imageList.value.findIndex(
+                            img => img.path === previewDialog.value.currentFile.path
+                        );
+                        // 在下一个事件循环中聚焦图片预览区域以启用键盘事件
+                        nextTick(() => {
+                            if (imagePreview.value) {
+                                imagePreview.value.focus();
+                            }
+                        });
+                    }
+                });
+
                 // 重命名文件
                 const renameFile = async (file) => {
                     try {
@@ -775,16 +908,20 @@
                     showDeleteDialog,
                     confirmDelete,
                     isImageFile,
+                    isVideoFile,
                     formatFileSize,
                     handleFileSelect,
                     handleFileDrop,
                     downloadFile,
                     previewText,
-                    showDeleteDialog,
-                    confirmDelete,
-                    renameFile,
-                    isImageFile,
-                    formatFileSize
+                    // 添加图片导航相关的方法和属性
+                    hasPrevImage,
+                    hasNextImage,
+                    showPrevImage,
+                    showNextImage,
+                    handleImageKeydown,
+                    imagePreview,
+                    renameFile
                 };
             }
         });
@@ -794,6 +931,7 @@
         // Register all icons
         for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
             app.component(key, component);
+            // console.log(key);
         }
         app.mount('#app');
     </script>
