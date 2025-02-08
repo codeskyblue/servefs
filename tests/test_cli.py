@@ -26,12 +26,14 @@ def test_invalid_port():
     result = runner.invoke(app, ["--port", "99999"])
     assert result.exit_code == 2
     assert "Invalid value for '--port'" in result.stdout
+    assert "99999" in result.stdout
 
 def test_invalid_root():
     """测试无效根目录"""
     result = runner.invoke(app, ["--root", "/nonexistent/path"])
     assert result.exit_code == 2
-    assert "Invalid value for '--root'" in result.stdout
+    for word in "Directory '/nonexistent/path' does not exist".split():
+        assert word in result.stdout
 
 @pytest.fixture
 def temp_dir(tmp_path):
