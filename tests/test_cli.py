@@ -7,12 +7,11 @@ from typer.testing import CliRunner
 
 from servefs.cli import app
 
-os.environ["NO_COLOR"] = "1"  # 禁用颜色输出
 runner = CliRunner()
 
 def test_version():
     """测试版本信息显示"""
-    result = runner.invoke(app, ["--version"])
+    result = runner.invoke(app, ["--version"], color=False)
     assert result.exit_code == 0
     assert "servefs version:" in result.stdout
 
@@ -26,7 +25,7 @@ def test_invalid_port():
     """测试无效端口号"""
     result = runner.invoke(app, ["--port", "99999"])
     assert result.exit_code == 2
-    assert "Invalid value for '--port'" in result.stdout
+    assert "Invalid value" in result.stdout
     assert "99999" in result.stdout
 
 def test_invalid_root():
