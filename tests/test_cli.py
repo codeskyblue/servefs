@@ -7,6 +7,7 @@ from typer.testing import CliRunner
 
 from servefs.cli import app
 
+os.environ["NO_COLOR"] = "1"  # 禁用颜色输出
 runner = CliRunner()
 
 def test_version():
