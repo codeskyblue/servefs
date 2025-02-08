@@ -29,7 +29,7 @@ pip install servefs
 
 ## Usage
 
-### Command Line Usage
+### Command Line
 
 Basic usage:
 
@@ -52,61 +52,23 @@ Complete command line options:
 ```
 Options:
   -r, --root TEXT     Root directory to serve [default: .]
-  -h, --host TEXT     Host to bind [default: 127.0.0.1]
+  -h, --host TEXT     Host to bind [default: 0.0.0.0]
   -p, --port INTEGER  Port to bind [default: 8000]
   -v, --version       Show version and exit
   --help             Show this message and exit
 ```
 
-### Development Environment
+## Development
 
-1. Clone repository:
-```bash
-git clone [repository-url]
-cd fileserver
-```
+For development information, please check [Development Guide](DEVELOP.md).
 
-2. Install dependencies:
-```bash
-poetry install
-```
+## TODO
 
-3. Run server:
-```bash
-poetry run servefs
-```
-
-4. Open in browser:
-```
-http://localhost:8000
-```
-
-## Tech Stack
-
-### Backend
-- FastAPI: High-performance Python web framework
-- Python 3.8+: Programming language
-- uvicorn: ASGI server
-- Typer: Command-line interface framework
-- Rich: Terminal styling
-
-### Frontend
-- Vue.js 3: Frontend framework
-- Element Plus: UI component library
-- @element-plus/icons-vue: Icon library
-
-## Notes
-
-- Files will be automatically renamed to avoid conflicts
-- Deletion operations require confirmation
-- Supported image formats: jpg, jpeg, png, gif, webp
-- File size display automatically converts units (B, KB, MB, GB)
-
-## Development Plan
-
-- [ ] Add file search functionality
-- [ ] Support more file type previews
-- [ ] Add file sorting functionality
-- [ ] Support file renaming
+- [ ] Support file search
+- [ ] Support file rename
 - [ ] Add user authentication
 - [ ] Support file sharing
+
+## Acknowledgements
+
+- Windsurf

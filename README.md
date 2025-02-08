@@ -29,33 +29,33 @@
 pipx install servefs
 ```
 
-或者使用 pip 安装：
+或使用 pip：
 
 ```bash
 pip install servefs
 ```
 
-## 使用方法
+## 使用
 
-### 命令行使用
+### 命令行
 
-最简单的使用方式：
+基本用法：
 
 ```bash
 # 在当前目录启动服务器
 servefs
 
-# 指定端口号
+# 指定端口
 servefs --port 7001
 
 # 指定根目录
 servefs --root /path/to/directory
 
-# 查看帮助
+# 显示帮助
 servefs --help
 ```
 
-完整的命令行选项：
+完整命令行选项：
 
 ```
 选项:
@@ -66,55 +66,13 @@ servefs --help
   --help             显示帮助信息并退出
 ```
 
-### 开发环境使用
+## 开发
 
-1. 克隆仓库：
-```bash
-git clone https://github.com/codeskyblue/servefs.git
-cd servefs
-```
+如果你想参与开发，请查看 [开发指南](DEVELOP.md)。
 
-2. 安装依赖：
-```bash
-poetry install
-```
+## TODO
 
-3. 运行服务器：
-```bash
-poetry run servefs
-```
-
-4. 打开浏览器访问：
-```
-http://localhost:8000
-```
-
-## 技术栈
-
-### 后端
-- FastAPI：高性能的 Python Web 框架
-- Python 3.8+：编程语言
-- uvicorn：ASGI 服务器
-- Typer：命令行界面框架
-- Rich：终端美化
-
-### 前端
-- Vue.js 3：前端框架
-- Element Plus：UI 组件库
-- @element-plus/icons-vue：图标库
-
-## 注意事项
-
-- 上传文件会自动重命名以避免冲突
-- 删除操作需要确认
-- 支持的图片格式：jpg、jpeg、png、gif、webp
-- 文件大小显示自动转换单位（B、KB、MB、GB）
-
-## 开发计划
-
-- [ ] 添加文件搜索功能
-- [ ] 支持更多文件类型的预览
-- [ ] 添加文件排序功能
+- [ ] 支持文件搜索
 - [ ] 支持文件重命名
 - [ ] 添加用户认证
 - [ ] 支持文件分享

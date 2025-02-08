@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "servefs"
-version = "0.1.0"
+version = "0.0.0"  # 将由 poetry-dynamic-versioning 自动管理
 description = "A modern HTTP file server with web UI"
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
@@ -29,8 +29,6 @@ python = "^3.8"
 fastapi = "^0.104.0"
 uvicorn = "^0.24.0"
 python-multipart = "^0.0.6"
-aiofiles = "^23.2.1"
-python-dotenv = "^1.0.0"
 typer = "^0.9.0"
 rich = "^13.7.0"
 
@@ -38,7 +36,12 @@ rich = "^13.7.0"
 pytest = "^7.4.3"
 black = "^23.10.1"
 isort = "^5.12.0"
+poetry-dynamic-versioning = "^1.7.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+pattern = "^v?(?P<base>\\d+\\.\\d+\\.\\d+)$"

@@ -151,6 +151,14 @@
         .preview-sizes div {
             margin: 10px 0;
         }
+        .editor-content {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+            line-height: 1.5;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+        }
     </style>
 </head>
 <body>
@@ -242,13 +250,19 @@
                                         target="_blank"
                                         class="el-button el-button--primary el-button--small"
                                         style="text-decoration: none;">
-                                        Download
+                                        <el-icon><Download /></el-icon>
                                     </a>
+                                    <el-button 
+                                        type="primary"
+                                        size="small"
+                                        @click.stop="renameFile(item)">
+                                        <el-icon><Edit /></el-icon>
+                                    </el-button>
                                     <el-button 
                                         type="danger" 
                                         size="small" 
                                         @click.stop="showDeleteDialog(item)">
-                                        Delete
+                                        <el-icon><Delete /></el-icon>
                                     </el-button>
                                 </el-button-group>
                             </div>
@@ -280,7 +294,9 @@
                 v-model="previewDialog.content"
                 type="textarea"
                 :rows="20"
-                :readonly="!previewDialog.editable">
+                :readonly="!previewDialog.editable"
+                class="editor-content"
+            >
             </el-input>
             <!-- 字体预览 -->
             <div v-else-if="previewDialog.isFont" class="font-preview">
@@ -349,7 +365,7 @@
 
     <script>
         const { createApp, ref, computed, onMounted, onUnmounted, watch } = Vue;
-        const { ElMessage } = ElementPlus;
+        const { ElMessage, ElMessageBox } = ElementPlus;
         
         const app = createApp({
             setup() {
@@ -405,7 +421,7 @@
 
                 const loadFiles = async (path = '') => {
                     try {
-                        const response = await fetch(`/api/files?path=${path}`);
+                        const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
                         const data = await response.json();
                         if (data.error) {
                             ElMessage.error(data.error);
@@ -440,80 +456,48 @@
                     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
                 };
 
+                const createPreviewConfig = (item, type) => {
+                    return {
+                        visible: true,
+                        title: item.name,
+                        content: type === 'image' ? `/raw/${item.path}` : '',
+                        editable: type === 'text',
+                        currentFile: item,
+                        isImage: type === 'image',
+                        isText: type === 'text',
+                        isFont: type === 'font',
+                        fontUrl: type === 'font' ? `/raw/${item.path}` : '',
+                        fontFamily: '',
+                        fileSize: item.size || 0,
+                        mimeType: item.mime_type || ''
+                    };
+                };
+
                 const openFile = async (item) => {
                     try {
                         if (isImageFile(item.name)) {
-                            // 对于图片文件，使用 /raw/ 路由来获取原始图片
-                            previewDialog.value = {
-                                visible: true,
-                                title: item.name,
-                                content: `/raw/${item.path}`,
-                                editable: false,
-                                currentFile: item,
-                                isImage: true,
-                                isText: false,
-                                isFont: false,
-                                fontUrl: '',
-                                fontFamily: '',
-                                fileSize: 0,
-                                mimeType: ''
-                            };
+                            previewDialog.value = createPreviewConfig(item, 'image');
                         } else if (item.name.toLowerCase().endsWith('.ttf')) {
-                            // TTF 字体文件预览
-                            previewDialog.value = {
-                                visible: true,
-                                title: item.name,
-                                content: '',
-                                editable: false,
-                                currentFile: item,
-                                isImage: false,
-                                isText: false,
-                                isFont: true,
-                                fontUrl: `/raw/${item.path}`,
-                                fontFamily: '',
-                                fileSize: item.size,
-                                mimeType: 'font/ttf'
-                            };
+                            previewDialog.value = createPreviewConfig(item, 'font');
                         } else if (item.mime_type.startsWith('text/') || item.mime_type === 'application/json') {
-                            // 对于文本文件和 JSON 文件，获取内容并显示在编辑器中
-                            const response = await fetch(`/api/files/${item.path}`);
+                            const response = await fetch(`/api/files/${encodeURIComponent(item.path)}`);
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
                             const data = await response.json();
                             if (data.error) {
                                 ElMessage.error(data.error);
                                 return;
                             }
-                            previewDialog.value = {
-                                visible: true,
-                                title: item.name,
-                                content: data.content,
-                                editable: true,
-                                currentFile: item,
-                                isImage: false,
-                                isText: true,
-                                isFont: false,
-                                fontUrl: '',
-                                fontFamily: '',
-                                fileSize: item.size,
-                                mimeType: item.mime_type
-                            };
+                            const config = createPreviewConfig(item, 'text');
+                            config.content = data.content;
+                            previewDialog.value = config;
                         } else {
-                            previewDialog.value = {
-                                visible: true,
-                                title: item.name,
-                                content: '',
-                                editable: false,
-                                currentFile: item,
-                                isImage: false,
-                                isText: false,
-                                isFont: false,
-                                fontUrl: '',
-                                fontFamily: '',
-                                fileSize: item.size,
-                                mimeType: item.mime_type
-                            };
+                            previewDialog.value = createPreviewConfig(item, 'unknown');
                         }
                     } catch (error) {
-                        ElMessage.error('Failed to open file');
+                        console.error('Error opening file:', error);
+                        ElMessage.error('打开文件时发生错误');
                     }
                 };
 
@@ -724,6 +708,55 @@
                     }
                 });
 
+                // 重命名文件
+                const renameFile = async (file) => {
+                    try {
+                        const { value: newName } = await ElMessageBox.prompt('请输入新名称', '重命名', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            inputValue: file.name,
+                            inputValidator: (value) => {
+                                if (!value) {
+                                    return '名称不能为空';
+                                }
+                                if (value === file.name) {
+                                    return '新名称不能与原名称相同';
+                                }
+                                if (fileList.value.some(f => f.name === value && f.path !== file.path)) {
+                                    return '该名称已存在';
+                                }
+                                return true;
+                            }
+                        });
+
+                        if (newName) {
+                            const response = await fetch(`/api/files/${encodeURIComponent(file.path)}/rename`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    new_name: newName
+                                })
+                            });
+
+                            const data = await response.json();
+                            if (data.error) {
+                                ElMessage.error(data.error);
+                                return;
+                            }
+
+                            ElMessage.success('重命名成功');
+                            await loadFiles(currentPath.value);
+                        }
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            console.error('重命名失败:', error);
+                            ElMessage.error('重命名失败');
+                        }
+                    }
+                };
+
                 return {
                     fileList,
                     currentPath,
@@ -746,7 +779,12 @@
                     handleFileSelect,
                     handleFileDrop,
                     downloadFile,
-                    previewText
+                    previewText,
+                    showDeleteDialog,
+                    confirmDelete,
+                    renameFile,
+                    isImageFile,
+                    formatFileSize
                 };
             }
         });

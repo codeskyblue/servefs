@@ -105,6 +105,39 @@ async def delete_file(file_path: str, request: Request):
     except Exception as e:
         return {"error": str(e)}
 
+@router.post("/files/{file_path:path}/rename")
+async def rename_file(file_path: str, request: Request):
+    """重命名文件或目录"""
+    try:
+        data = await request.json()
+        new_name = data.get("new_name", "")
+        
+        if not new_name:
+            return {"error": "新文件名不能为空"}
+            
+        source_path = request.app.state.ROOT_DIR / file_path
+        if not source_path.exists():
+            return {"error": "文件或目录不存在"}
+            
+        # 构建新路径
+        target_path = source_path.parent / new_name
+        
+        # 检查目标文件是否已存在
+        if target_path.exists():
+            return {"error": "目标文件已存在"}
+            
+        try:
+            source_path.rename(target_path)
+            return {
+                "message": "重命名成功",
+                "new_path": str(target_path.relative_to(request.app.state.ROOT_DIR))
+            }
+        except OSError as e:
+            return {"error": f"重命名失败: {str(e)}"}
+            
+    except Exception as e:
+        return {"error": str(e)}
+
 @router.post("/upload/{path:path}")
 async def upload_files(path: str, files: list[UploadFile] = File(...), paths: list[str] = Form(...), request: Request = None):
     """Upload files to the specified path"""
