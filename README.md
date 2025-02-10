@@ -4,6 +4,10 @@
 
 一个基于 FastAPI 和 Vue.js 的简单文件服务器，支持文件和文件夹的上传、预览和管理。
 
+![screenshot](docs/servefs.png)
+
+更多截图查看 [GALLERY](GALERY.md)
+
 ## 功能特点
 
 - 📁 文件和文件夹浏览
@@ -73,7 +77,7 @@ servefs --help
 ## TODO
 
 - [ ] 支持文件搜索
-- [ ] 支持文件重命名
+- [x] 支持文件重命名
 - [ ] 添加用户认证
 - [ ] 支持文件分享
 
