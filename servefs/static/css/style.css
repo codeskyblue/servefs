@@ -1,0 +1,210 @@
+.el-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #dcdfe6;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-browser {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+}
+.path-nav {
+    margin-bottom: 20px;
+}
+.path-nav .el-breadcrumb__item {
+    cursor: pointer;
+    font-weight: 500;
+}
+.path-nav .el-breadcrumb__item:hover {
+    color: #409EFF;
+}
+.file-list {
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+}
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ebeef5;
+}
+.file-item:last-child {
+    border-bottom: none;
+}
+.file-icon {
+    display: flex;
+    justify-content: center;
+    margin-right: 10px;
+    width: 24px;
+    text-align: center;
+    color: #606266;
+}
+.file-name {
+    cursor: pointer;
+    flex-grow: 1;
+    margin-right: 16px;
+}
+.file-name:hover {
+    color: #409EFF;
+}
+.file-size {
+    color: #909399;
+    margin-right: 16px;
+    font-size: 0.9em;
+    width: 80px;
+    text-align: right;
+}
+.file-actions {
+    margin-left: auto;
+}
+.file-actions .el-button {
+    margin-left: 8px;
+}
+.image-preview {
+    position: relative;
+    outline: none;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    max-height: 70vh;
+}
+.image-preview img {
+    max-width: 100%;
+    max-height: 70vh;
+    height: auto;
+    object-fit: contain;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.video-preview {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    max-height: 70vh;
+}
+.video-preview video {
+    max-width: 100%;
+    max-height: 70vh;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.upload-area {
+    border: 2px dashed #dcdfe6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.upload-area.drag-over {
+    border-color: #409eff;
+    background-color: rgba(64, 158, 255, 0.1);
+}
+.upload-area .el-icon {
+    font-size: 48px;
+    color: #909399;
+    margin-bottom: 10px;
+}
+.upload-text {
+    color: #606266;
+    margin: 10px 0;
+}
+.upload-tip {
+    color: #909399;
+    font-size: 0.9em;
+}
+.upload-progress {
+    margin-top: 10px;
+}
+.file-info-card {
+    padding: 20px;
+    text-align: center;
+    background-color: #f5f7fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+.file-info-icon {
+    font-size: 48px;
+    color: #909399;
+    margin-bottom: 20px;
+}
+.file-info-name {
+    font-size: 18px;
+    font-weight: 500;
+    color: #303133;
+    margin-bottom: 10px;
+}
+.file-info-details {
+    color: #606266;
+    margin: 5px 0;
+}
+.file-info-actions {
+    margin-top: 20px;
+}
+.font-preview {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.preview-text {
+    margin-bottom: 20px;
+}
+.preview-sizes div {
+    margin: 10px 0;
+}
+.editor-content {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+    line-height: 1.5;
+    padding: 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    tab-size: 4;
+}
+.preview-nav-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 20px;
+    transition: all 0.3s;
+    z-index: 10;
+    opacity: 0;
+}
+.image-preview:hover .preview-nav-button {
+    opacity: 1;
+}
+.preview-nav-button:hover {
+    background: rgba(0, 0, 0, 0.5);
+    transform: translateY(-50%) scale(1.1);
+}
+.preview-prev {
+    left: 20px;
+}
+.preview-next {
+    right: 20px;
+}

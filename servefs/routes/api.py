@@ -2,8 +2,41 @@ import mimetypes
 import shutil
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import JSONResponse
+from ..middleware.auth import Permission
 
 router = APIRouter(prefix="/api", tags=["api"])
+
+@router.get("/auth/login")
+async def login(request: Request):
+    """触发浏览器的基本认证对话框"""
+    auth_header = request.headers.get("authorization")
+    auth_manager = request.app.state.auth_manager
+    
+    if not auth_manager.auth_enabled:
+        return {"message": "Authentication not enabled"}
+    
+    is_auth, permission = auth_manager.check_auth(auth_header)
+    if not is_auth or permission != Permission.READ_WRITE:
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Authentication required"},
+            headers={"WWW-Authenticate": "Basic"}
+        )
+    
+    return {"message": "Authenticated successfully"}
+
+@router.get("/auth/check")
+async def check_auth(request: Request):
+    """检查当前用户的权限状态"""
+    auth_header = request.headers.get("authorization")
+    auth_manager = request.app.state.auth_manager
+    
+    _, permission = auth_manager.check_auth(auth_header)
+    return {
+        "permission": permission,
+        "can_write": permission == Permission.READ_WRITE
+    }
 
 @router.get("/files")
 async def list_files(path: str = "", request: Request = None):

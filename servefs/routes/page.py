@@ -6,7 +6,8 @@ from typing import AsyncIterator, Union
 import aiofiles
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+
+from ..utils.static import ETaggedStaticFiles
 
 # Get current module path
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -89,7 +90,7 @@ async def handle_file_request(
 # Mount static files for direct access to static assets
 def init_static_files(app):
     """Initialize static file serving"""
-    app.mount("/static", StaticFiles(directory=PACKAGE_DIR / "static"), name="static")
+    app.mount("/static", ETaggedStaticFiles(directory=PACKAGE_DIR / "static"), name="static")
 
 # Serve index.html for the root path
 @router.get("/", response_class=HTMLResponse)

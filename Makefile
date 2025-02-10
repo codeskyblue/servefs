@@ -1,6 +1,9 @@
 dev:
 	npx nodemon -e "js html py" --exec "uvicorn servefs.main:app --port 7001"
 
+watch:
+	npx nodemon -e "js html py" --exec "poetry run servefs -d ./files --port 7001"
+
 reload:
 	uvicorn servefs.main:app --port 7001 --reload
 

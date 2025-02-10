@@ -32,8 +32,8 @@ def version_callback(value: bool):
 def main(
     root: Path = typer.Option(
         Path("."),
-        "--root",
-        "-r",
+        "--directory",
+        "-d",
         help="Root directory path, defaults to current directory",
         exists=True,
         dir_okay=True,
@@ -57,6 +57,12 @@ def main(
         "--debug",
         help="Enable developer mode with /docs and /redoc support",
     ),
+    basic_auth: Optional[str] = typer.Option(
+        None,
+        "--basic-auth",
+        "-b",
+        help="Basic auth credentials in format username:password",
+    ),
     version: Optional[bool] = typer.Option(
         None,
         "--version",
@@ -79,6 +85,8 @@ def main(
     root_path = root.absolute()
     os.environ["SERVEFS_ROOT"] = str(root_path)
     os.environ["SERVEFS_DEBUG"] = "true" if debug else "false"
+    if basic_auth:
+        os.environ["SERVEFS_BASIC_AUTH"] = basic_auth
     
     # Display server information
     console.print(Panel.fit(

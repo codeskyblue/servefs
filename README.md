@@ -43,17 +43,19 @@ pip install servefs
 
 ### 命令行
 
-基本用法：
-
 ```bash
 # 在当前目录启动服务器
 servefs
 
+# 指定目录
+servefs --directory /path/to/directory
+# or
+servefs -d /path/to/directory
+
 # 指定端口
 servefs --port 7001
-
-# 指定根目录
-servefs --root /path/to/directory
+# or
+servefs -p 7001
 
 # 显示帮助
 servefs --help
@@ -63,11 +65,36 @@ servefs --help
 
 ```
 选项:
-  -r, --root TEXT     要服务的根目录 [default: .]
+  -d, --directory TEXT     要服务的根目录 [default: .]
   -h, --host TEXT     绑定的主机地址 [default: 0.0.0.0]
   -p, --port INTEGER  绑定的端口号 [default: 8000]
+  -b, --basic-auth TEXT  启用基本认证，格式为 username:password
   -v, --version       显示版本号并退出
   --help             显示帮助信息并退出
+```
+
+### 基本认证
+
+你可以使用基本认证来限制文件的访问权限：
+
+```bash
+# 设置用户名和密码
+servefs --basic-auth admin:password123
+
+# 或使用短选项
+servefs -b admin:password123
+```
+
+启用基本认证后：
+- 未认证用户只能查看和下载文件
+- 认证用户可以执行所有操作（上传、删除、重命名等）
+- 认证信息会通过浏览器的基本认证机制传输
+
+你也可以通过环境变量设置认证信息：
+
+```bash
+export SERVEFS_BASIC_AUTH=admin:password123
+servefs
 ```
 
 ## 开发

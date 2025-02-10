@@ -12,214 +12,24 @@
     <script src="https://unpkg.com/element-plus"></script>
     <!-- Import Element Plus Icons -->
     <script src="https://unpkg.com/@element-plus/icons-vue"></script>
-    <style>
-        .file-browser {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        .path-nav {
-            margin-bottom: 20px;
-        }
-        .path-nav .el-breadcrumb__item {
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .path-nav .el-breadcrumb__item:hover {
-            color: #409EFF;
-        }
-        .file-list {
-            border: 1px solid #ebeef5;
-            border-radius: 4px;
-        }
-        .file-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #ebeef5;
-        }
-        .file-item:last-child {
-            border-bottom: none;
-        }
-        .file-icon {
-            display: flex;
-            justify-content: center;
-            margin-right: 10px;
-            width: 24px;
-            text-align: center;
-            color: #606266;
-        }
-        .file-name {
-            cursor: pointer;
-            flex-grow: 1;
-            margin-right: 16px;
-        }
-        .file-name:hover {
-            color: #409EFF;
-        }
-        .file-size {
-            color: #909399;
-            margin-right: 16px;
-            font-size: 0.9em;
-            width: 80px;
-            text-align: right;
-        }
-        .file-actions {
-            margin-left: auto;
-        }
-        .file-actions .el-button {
-            margin-left: 8px;
-        }
-        .image-preview {
-            position: relative;
-            outline: none;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 200px;
-            max-height: 70vh;
-        }
-        .image-preview img {
-            max-width: 100%;
-            max-height: 70vh;
-            height: auto;
-            object-fit: contain;
-            border: 1px solid lightgray;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .video-preview {
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 200px;
-            max-height: 70vh;
-        }
-        .video-preview video {
-            max-width: 100%;
-            max-height: 70vh;
-            border: 1px solid lightgray;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .upload-area {
-            border: 2px dashed #dcdfe6;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .upload-area.drag-over {
-            border-color: #409eff;
-            background-color: rgba(64, 158, 255, 0.1);
-        }
-        .upload-area .el-icon {
-            font-size: 48px;
-            color: #909399;
-            margin-bottom: 10px;
-        }
-        .upload-text {
-            color: #606266;
-            margin: 10px 0;
-        }
-        .upload-tip {
-            color: #909399;
-            font-size: 0.9em;
-        }
-        .upload-progress {
-            margin-top: 10px;
-        }
-        .file-info-card {
-            padding: 20px;
-            text-align: center;
-            background-color: #f5f7fa;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .file-info-icon {
-            font-size: 48px;
-            color: #909399;
-            margin-bottom: 20px;
-        }
-        .file-info-name {
-            font-size: 18px;
-            font-weight: 500;
-            color: #303133;
-            margin-bottom: 10px;
-        }
-        .file-info-details {
-            color: #606266;
-            margin: 5px 0;
-        }
-        .file-info-actions {
-            margin-top: 20px;
-        }
-        .font-preview {
-            padding: 20px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        .preview-text {
-            margin-bottom: 20px;
-        }
-        .preview-sizes div {
-            margin: 10px 0;
-        }
-        .editor-content {
-            font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
-            line-height: 1.5;
-            padding: 10px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            tab-size: 4;
-        }
-        .preview-nav-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 50%;
-            font-size: 20px;
-            transition: all 0.3s;
-            z-index: 10;
-            opacity: 0;
-        }
-        .image-preview:hover .preview-nav-button {
-            opacity: 1;
-        }
-        .preview-nav-button:hover {
-            background: rgba(0, 0, 0, 0.5);
-            transform: translateY(-50%) scale(1.1);
-        }
-        .preview-prev {
-            left: 20px;
-        }
-        .preview-next {
-            right: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div id="app" class="file-browser">
         <el-container>
             <el-header>
                 <h1>ServeFS File Browser</h1>
+                <div class="header-actions">
+                    <el-button v-if="!hasWritePermission" type="primary" @click="login">
+                        Login
+                    </el-button>
+                </div>
             </el-header>
             
             <el-main>
                 <!-- 上传区域 -->
                 <div
+                    v-if="hasWritePermission"
                     class="upload-area"
                     :class="{ 'drag-over': isDragOver }"
                     @dragenter.prevent="isDragOver = true"
@@ -302,32 +112,44 @@
                                         style="text-decoration: none;">
                                         <el-icon><Download /></el-icon>
                                     </a>
-                                    <el-button 
-                                        type="primary"
-                                        size="small"
-                                        @click.stop="renameFile(item)">
-                                        <el-icon><Edit /></el-icon>
-                                    </el-button>
+                                    <template v-if="hasWritePermission">
+                                        <el-tooltip
+                                            content="Rename"
+                                            placement="top"
+                                            :show-after="300">
+                                            <el-button
+                                                @click.stop="renameFile(item)"
+                                                type="primary"
+                                                size="small">
+                                                <el-icon><Edit /></el-icon>
+                                            </el-button>
+                                        </el-tooltip>
+                                        
+                                        <el-tooltip
+                                            content="Delete"
+                                            placement="top"
+                                            :show-after="300">
+                                            <el-button
+                                                @click.stop="showDeleteDialog(item)"
+                                                type="danger"
+                                                size="small">
+                                                <el-icon><Delete /></el-icon>
+                                            </el-button>
+                                        </el-tooltip>
+                                    </template>
+
                                     <el-tooltip
                                         :content="item.tooltipText"
                                         placement="top"
-                                        effect="dark"
-                                        :show-after="100"
-                                        @hide="onTooltipHide(item)"
-                                    >
-                                        <el-button 
-                                            type="info" 
-                                            size="small" 
-                                            @click.stop="copyFileLink(item)">
+                                        :show-after="300"
+                                        @hide="onTooltipHide(item)">
+                                        <el-button
+                                            @click.stop="copyFileLink(item)"
+                                            type="info"
+                                            size="small">
                                             <el-icon><copy-document /></el-icon>
                                         </el-button>
                                     </el-tooltip>
-                                    <el-button 
-                                        type="danger" 
-                                        size="small" 
-                                        @click.stop="showDeleteDialog(item)">
-                                        <el-icon><delete /></el-icon>
-                                    </el-button>
                                 </el-button-group>
                             </div>
                         </div>
@@ -345,74 +167,79 @@
         <el-dialog 
             v-model="previewDialog.visible" 
             :title="previewDialog.title" 
-            width="70%"
-            :top="'5vh'"
-            :fullscreen="false">
-            <!-- 图片预览 -->
-            <div v-if="previewDialog.isImage" class="image-preview" tabindex="0" ref="imagePreview" @keydown="handleImageKeydown">
-                <el-icon class="preview-nav-button preview-prev" @click="showPrevImage" v-if="hasPrevImage"><arrow-left /></el-icon>
-                <img :src="previewDialog.content" :alt="previewDialog.title">
-                <el-icon class="preview-nav-button preview-next" @click="showNextImage" v-if="hasNextImage"><arrow-right /></el-icon>
-            </div>
-            <!-- 视频预览 -->
-            <div v-else-if="previewDialog.isVideo" class="video-preview">
-                <video controls :src="previewDialog.content">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-            <!-- 文本编辑器 -->
-            <el-input
-                v-else-if="previewDialog.isText"
-                v-model="previewDialog.content"
-                type="textarea"
-                :rows="20"
-                :readonly="!previewDialog.editable"
-                class="editor-content"
-            >
-            </el-input>
-            <!-- 字体预览 -->
-            <div v-else-if="previewDialog.isFont" class="font-preview">
-                <div class="preview-text">
-                    <el-input v-model="previewText" placeholder="输入预览文字">
-                    </el-input>
+            width="80%"
+            class="preview-dialog"
+            :close-on-click-modal="false"
+            :before-close="handleClose">
+            <div class="preview-content">
+                <!-- 图片预览 -->
+                <div v-if="previewDialog.isImage" class="image-preview" tabindex="0" ref="imagePreview" @keydown="handleImageKeydown">
+                    <el-icon class="preview-nav-button preview-prev" @click="showPrevImage" v-if="hasPrevImage"><arrow-left /></el-icon>
+                    <img :src="previewDialog.content" :alt="previewDialog.title">
+                    <el-icon class="preview-nav-button preview-next" @click="showNextImage" v-if="hasNextImage"><arrow-right /></el-icon>
                 </div>
-                <div class="preview-sizes">
-                    <div v-for="size in [12, 16, 24, 32, 48]" :key="size">
-                        <div>{{ size }}px</div>
-                        <div :style="{
-                            fontSize: size + 'px',
-                            fontFamily: previewDialog.fontFamily
-                        }">{{ previewText }}</div>
+                <!-- 视频预览 -->
+                <div v-else-if="previewDialog.isVideo" class="video-preview">
+                    <video controls :src="previewDialog.content">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <!-- 文本编辑器 -->
+                <template v-else-if="previewDialog.isText">
+                    <el-input
+                        v-model="previewDialog.content"
+                        type="textarea"
+                        :rows="20"
+                        :readonly="!hasWritePermission"
+                        resize="none"
+                    />
+                </template>
+                <!-- 字体预览 -->
+                <div v-else-if="previewDialog.isFont" class="font-preview">
+                    <div class="preview-text">
+                        <el-input v-model="previewText" placeholder="输入预览文字">
+                        </el-input>
+                    </div>
+                    <div class="preview-sizes">
+                        <div v-for="size in [12, 16, 24, 32, 48]" :key="size">
+                            <div>{{ size }}px</div>
+                            <div :style="{
+                                fontSize: size + 'px',
+                                fontFamily: previewDialog.fontFamily
+                            }">{{ previewText }}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- 文件信息卡片 -->
-            <div v-else class="file-info-card">
-                <div class="file-info-icon">
-                    <el-icon><Document /></el-icon>
-                </div>
-                <div class="file-info-name">{{ previewDialog.title }}</div>
-                <div class="file-info-details">
-                    <div>文件大小：{{ formatFileSize(previewDialog.fileSize) }}</div>
-                    <div>文件类型：{{ previewDialog.mimeType || '未知' }}</div>
-                </div>
-                <div class="file-info-actions">
-                    <el-button type="primary" @click="downloadFile(previewDialog.currentFile)">
-                        下载文件
-                    </el-button>
+                <!-- 文件信息卡片 -->
+                <div v-else class="file-info-card">
+                    <div class="file-info-icon">
+                        <el-icon><Document /></el-icon>
+                    </div>
+                    <div class="file-info-name">{{ previewDialog.title }}</div>
+                    <div class="file-info-details">
+                        <div>文件大小：{{ formatFileSize(previewDialog.fileSize) }}</div>
+                        <div>文件类型：{{ previewDialog.mimeType || '未知' }}</div>
+                    </div>
+                    <div class="file-info-actions">
+                        <el-button type="primary" @click="downloadFile(previewDialog.currentFile)">
+                            下载文件
+                        </el-button>
+                    </div>
                 </div>
             </div>
             <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="previewDialog.visible = false">关闭</el-button>
-                    <template v-if="previewDialog.isText">
-                        <el-button type="primary" @click="saveFile">
-                            保存
+                    <template v-if="previewDialog.isText && hasWritePermission">
+                        <el-button @click="saveAndClose">
+                            Save & Close
                         </el-button>
-                        <el-button type="primary" @click="saveAndClose">
-                            保存并关闭
+                        <el-button @click="saveFile">
+                            Save
                         </el-button>
                     </template>
+                    <el-button @click="previewDialog.visible = false">
+                        Close
+                    </el-button>
                 </span>
             </template>
         </el-dialog>
@@ -435,545 +262,7 @@
         </el-dialog>
     </div>
 
-    <script>
-        const { createApp, ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
-        const { ElMessage, ElMessageBox } = ElementPlus;
-        
-        const app = createApp({
-            setup() {
-                const currentPath = ref('');
-                const fileList = ref([]);
-                const isDragOver = ref(false);
-                const uploadProgress = ref([]);
-                const fileInput = ref(null);
-                const folderInput = ref(null);
-                const previewDialog = ref({
-                    visible: false,
-                    title: '',
-                    content: '',
-                    editable: false,
-                    currentFile: null,
-                    isImage: false,
-                    isVideo: false,
-                    isText: false,
-                    isFont: false,
-                    fontUrl: '',
-                    fontFamily: '',
-                    fileSize: 0,
-                    mimeType: '',
-                    currentImageIndex: -1
-                });
-                const deleteDialog = ref({
-                    visible: false,
-                    title: '',
-                    message: ''
-                });
-                const previewText = ref('Hello 你好 こんにちは 123');
-
-                // Get initial path from URL
-                const initPath = () => {
-                    const path = window.location.pathname;
-                    if (path.startsWith('/blob/')) {
-                        return path.substring(6); // Remove '/blob/' prefix
-                    }
-                    return '';
-                };
-
-                const pathSegments = computed(() => {
-                    return currentPath.value ? currentPath.value.split('/') : [];
-                });
-
-                const getPathUpTo = (index) => {
-                    return pathSegments.value.slice(0, index + 1).join('/');
-                };
-
-                const navigateTo = (path) => {
-                    const urlPath = path ? `/blob/${path}` : '/';
-                    history.pushState(null, '', urlPath);
-                    loadFiles(path);
-                };
-
-                const loadFiles = async (path = '') => {
-                    try {
-                        const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
-                        const data = await response.json();
-                        if (data.error) {
-                            ElMessage.error(data.error);
-                            return;
-                        }
-                        // 为每个文件项添加 tooltip 相关属性
-                        fileList.value = data.items.map(item => ({
-                            ...item,
-                            tooltipText: 'Copy Link',
-                            showTooltip: false
-                        }));
-                        currentPath.value = data.current_path;
-                    } catch (error) {
-                        ElMessage.error('Failed to load files');
-                    }
-                };
-
-                const handleItemClick = (item) => {
-                    if (item.type === 'directory') {
-                        navigateTo(item.path);
-                    } else {
-                        openFile(item);
-                    }
-                };
-
-                // 检查文件是否为图片
-                const isImageFile = (filename) => {
-                    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
-                    return imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
-                };
-
-                // 检查文件是否为视频
-                const isVideoFile = (filename) => {
-                    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.mkv', '.avi'];
-                    return videoExtensions.some(ext => filename.toLowerCase().endsWith(ext));
-                };
-
-                const formatFileSize = (bytes) => {
-                    if (bytes === 0) return '0 B';
-                    const k = 1024;
-                    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-                };
-
-                const createPreviewConfig = (item, type) => {
-                    return {
-                        visible: true,
-                        title: item.name,
-                        content: (type === 'image' || type === 'video') ? `/raw/${item.path}` : '',
-                        editable: type === 'text',
-                        currentFile: item,
-                        isImage: type === 'image',
-                        isVideo: type === 'video',
-                        isText: type === 'text',
-                        isFont: type === 'font',
-                        fontUrl: type === 'font' ? `/raw/${item.path}` : '',
-                        fontFamily: '',
-                        fileSize: item.size || 0,
-                        mimeType: item.mime_type || ''
-                    };
-                };
-
-                const openFile = async (item) => {
-                    try {
-                        if (isImageFile(item.name)) {
-                            previewDialog.value = createPreviewConfig(item, 'image');
-                        } else if (isVideoFile(item.name)) {
-                            previewDialog.value = createPreviewConfig(item, 'video');
-                        } else if (item.name.toLowerCase().endsWith('.ttf')) {
-                            previewDialog.value = createPreviewConfig(item, 'font');
-                        } else if (item.mime_type.startsWith('text/') || item.mime_type === 'application/json') {
-                            const response = await fetch(`/api/files/${encodeURIComponent(item.path)}`);
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            const data = await response.json();
-                            if (data.error) {
-                                ElMessage.error(data.error);
-                                return;
-                            }
-                            const config = createPreviewConfig(item, 'text');
-                            config.content = data.content;
-                            previewDialog.value = config;
-                        } else {
-                            previewDialog.value = createPreviewConfig(item, 'unknown');
-                        }
-                    } catch (error) {
-                        console.error('Error opening file:', error);
-                        ElMessage.error('打开文件时发生错误');
-                    }
-                };
-
-                const saveFile = async () => {
-                    try {
-                        const response = await fetch(`/api/files/${previewDialog.value.currentFile.path}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                content: previewDialog.value.content
-                            })
-                        });
-                        const data = await response.json();
-                        if (data.error) {
-                            ElMessage.error(data.error);
-                            return;
-                        }
-                        ElMessage.success('File saved successfully');
-                    } catch (error) {
-                        ElMessage.error('Failed to save file');
-                    }
-                };
-
-                const saveAndClose = async () => {
-                    await saveFile();
-                    previewDialog.value.visible = false;
-                };
-
-                const showDeleteDialog = (item) => {
-                    deleteDialog.value = {
-                        visible: true,
-                        title: `Delete ${item.name}?`,
-                        message: `Are you sure you want to delete ${item.name}?`
-                    };
-                    deleteDialog.value.currentFile = item;
-                };
-
-                const confirmDelete = async () => {
-                    try {
-                        const response = await fetch(`/api/files/${deleteDialog.value.currentFile.path}`, {
-                            method: 'DELETE'
-                        });
-                        const data = await response.json();
-                        if (data.error) {
-                            ElMessage.error(data.error);
-                            return;
-                        }
-                        ElMessage.success('Item deleted successfully');
-                        await loadFiles(currentPath.value);
-                        deleteDialog.value.visible = false;
-                    } catch (error) {
-                        ElMessage.error('Failed to delete item');
-                    }
-                };
-
-                const downloadFile = (item) => {
-                    const a = document.createElement('a');
-                    a.href = item.download_url;
-                    a.download = item.name;
-                    a.click();
-                };
-
-                // 复制文件链接的方法
-                const copyFileLink = async (item) => {
-                    try {
-                        const fullUrl = new URL(item.download_url, window.location.origin).href;
-                        await navigator.clipboard.writeText(fullUrl);
-                        // 更新 tooltip 文本
-                        item.tooltipText = 'Copied';
-                    } catch (error) {
-                        item.tooltipText = 'Failed to copy';
-                    }
-                };
-
-                // 处理 tooltip 隐藏事件
-                const onTooltipHide = (item) => {
-                    if (item.tooltipText !== 'Copy Link') {
-                        item.tooltipText = 'Copy Link';
-                    }
-                };
-
-                // 处理文件上传
-                const uploadFiles = async (files) => {
-                    const formData = new FormData();
-                    const totalFiles = files.length;
-                    let processedFiles = 0;
-
-                    // 创建一个 Map 来存储文件夹结构
-                    const folderStructure = new Map();
-
-                    // 处理所有文件，构建文件夹结构
-                    for (const file of files) {
-                        const relativePath = file.webkitRelativePath || file.name;
-                        const pathParts = relativePath.split('/');
-                        
-                        // 如果是文件夹中的文件
-                        if (pathParts.length > 1) {
-                            const folderPath = pathParts.slice(0, -1).join('/');
-                            // 记录文件夹路径
-                            folderStructure.set(folderPath, true);
-                        }
-
-                        formData.append('files', file);
-                        // 添加文件的相对路径信息
-                        formData.append('paths', relativePath);
-                        
-                        // 添加上传进度条
-                        uploadProgress.value.push({
-                            filename: relativePath,
-                            percentage: 0,
-                            status: ''  // 默认状态为空
-                        });
-                    }
-
-                    try {
-                        const response = await fetch(`/api/upload/${currentPath.value}`, {
-                            method: 'POST',
-                            body: formData
-                        });
-                        const data = await response.json();
-                        if (data.error) {
-                            ElMessage.error(data.error);
-                            uploadProgress.value.forEach(p => p.status = 'error');
-                            return;
-                        }
-                        ElMessage.success('文件上传成功');
-                        // 更新进度条
-                        uploadProgress.value.forEach(p => {
-                            p.percentage = 100;
-                            p.status = 'success';
-                        });
-                        // 清理进度条
-                        setTimeout(() => {
-                            uploadProgress.value = [];
-                        }, 2000);
-                        // 刷新文件列表
-                        await loadFiles(currentPath.value);
-                    } catch (error) {
-                        ElMessage.error('文件上传失败');
-                        uploadProgress.value.forEach(p => p.status = 'error');
-                    }
-                };
-
-                const handleFileSelect = (event) => {
-                    const files = event.target.files;
-                    if (files.length > 0) {
-                        uploadFiles(files);
-                        event.target.value = ''; // 清理选择，允许重复选择相同文件
-                    }
-                };
-
-                const handleFileDrop = async (event) => {
-                    isDragOver.value = false;
-                    const items = event.dataTransfer.items;
-                    const files = [];
-
-                    // 递归获取文件夹中的所有文件
-                    const getFiles = async (entry) => {
-                        if (entry.isFile) {
-                            const file = await new Promise((resolve) => entry.file(resolve));
-                            // 保存完整路径信息
-                            file.webkitRelativePath = entry.fullPath.substring(1); // 移除开头的 '/'
-                            files.push(file);
-                        } else if (entry.isDirectory) {
-                            const reader = entry.createReader();
-                            const entries = await new Promise((resolve) => {
-                                reader.readEntries(resolve);
-                            });
-                            for (const childEntry of entries) {
-                                await getFiles(childEntry);
-                            }
-                        }
-                    };
-
-                    // 处理所有拖放的项目
-                    for (const item of items) {
-                        if (item.kind === 'file') {
-                            const entry = item.webkitGetAsEntry();
-                            if (entry) {
-                                await getFiles(entry);
-                            }
-                        }
-                    }
-
-                    if (files.length > 0) {
-                        uploadFiles(files);
-                    }
-                };
-
-                // 添加键盘快捷键支持
-                const handleKeydown = (e) => {
-                    if (previewDialog.value.visible && (e.metaKey || e.ctrlKey) && e.key === 's') {
-                        e.preventDefault(); // 阻止浏览器默认的保存行为
-                        saveFile();
-                    }
-                };
-
-                // Handle browser back/forward buttons
-                window.addEventListener('popstate', () => {
-                    loadFiles(initPath());
-                });
-
-                // Load initial files based on URL path
-                onMounted(() => {
-                    loadFiles(initPath());
-                    window.addEventListener('keydown', handleKeydown);
-                });
-
-                onUnmounted(() => {
-                    window.removeEventListener('keydown', handleKeydown);
-                });
-
-                watch(() => previewDialog.value.fontUrl, (newUrl) => {
-                    if (newUrl && previewDialog.value.isFont) {
-                        const fontFamily = 'PreviewFont_' + Date.now();
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            @font-face {
-                                font-family: '${fontFamily}';
-                                src: url('${newUrl}') format('truetype');
-                            }
-                        `;
-                        document.head.appendChild(style);
-                        previewDialog.value.fontFamily = fontFamily;
-                    }
-                });
-
-                // 图片导航相关
-                const imageList = ref([]);
-                const hasPrevImage = computed(() => previewDialog.value.isImage && previewDialog.value.currentImageIndex > 0);
-                const hasNextImage = computed(() => previewDialog.value.isImage && previewDialog.value.currentImageIndex < imageList.value.length - 1);
-                const imagePreview = ref(null);
-
-                // 获取同级目录中的所有图片
-                const getImageListInCurrentDir = () => {
-                    return fileList.value.filter(file => isImageFile(file.name));
-                };
-
-                // 显示上一张图片
-                const showPrevImage = () => {
-                    if (hasPrevImage.value) {
-                        const prevImage = imageList.value[previewDialog.value.currentImageIndex - 1];
-                        updatePreviewImage(prevImage, previewDialog.value.currentImageIndex - 1);
-                    }
-                };
-
-                // 显示下一张图片
-                const showNextImage = () => {
-                    if (hasNextImage.value) {
-                        const nextImage = imageList.value[previewDialog.value.currentImageIndex + 1];
-                        updatePreviewImage(nextImage, previewDialog.value.currentImageIndex + 1);
-                    }
-                };
-
-                // 更新预览图片
-                const updatePreviewImage = (image, index) => {
-                    if (image) {
-                        previewDialog.value.currentImageIndex = index;
-                        previewDialog.value.title = image.name;
-                        previewDialog.value.content = `/raw/${image.path}`;
-                        previewDialog.value.currentFile = image;
-                    }
-                };
-
-                // 处理图片预览时的键盘事件
-                const handleImageKeydown = (event) => {
-                    if (event.key === 'ArrowLeft') {
-                        showPrevImage();
-                    } else if (event.key === 'ArrowRight') {
-                        showNextImage();
-                    }
-                };
-
-                // 监听预览对话框显示状态
-                watch(() => previewDialog.value.visible, (newVisible) => {
-                    if (newVisible && previewDialog.value.isImage) {
-                        // 当显示图片预览时，获取同级目录的图片列表
-                        imageList.value = getImageListInCurrentDir();
-                        // 设置当前图片索引
-                        previewDialog.value.currentImageIndex = imageList.value.findIndex(
-                            img => img.path === previewDialog.value.currentFile.path
-                        );
-                        // 在下一个事件循环中聚焦图片预览区域以启用键盘事件
-                        nextTick(() => {
-                            if (imagePreview.value) {
-                                imagePreview.value.focus();
-                            }
-                        });
-                    }
-                });
-
-                // 重命名文件
-                const renameFile = async (file) => {
-                    try {
-                        const { value: newName } = await ElMessageBox.prompt('请输入新名称', '重命名', {
-                            confirmButtonText: '确定',
-                            cancelButtonText: '取消',
-                            inputValue: file.name,
-                            inputValidator: (value) => {
-                                if (!value) {
-                                    return '名称不能为空';
-                                }
-                                if (value === file.name) {
-                                    return '新名称不能与原名称相同';
-                                }
-                                if (fileList.value.some(f => f.name === value && f.path !== file.path)) {
-                                    return '该名称已存在';
-                                }
-                                return true;
-                            }
-                        });
-
-                        if (newName) {
-                            const response = await fetch(`/api/files/${encodeURIComponent(file.path)}/rename`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    new_name: newName
-                                })
-                            });
-
-                            const data = await response.json();
-                            if (data.error) {
-                                ElMessage.error(data.error);
-                                return;
-                            }
-
-                            ElMessage.success('重命名成功');
-                            await loadFiles(currentPath.value);
-                        }
-                    } catch (error) {
-                        if (error !== 'cancel') {
-                            console.error('重命名失败:', error);
-                            ElMessage.error('重命名失败');
-                        }
-                    }
-                };
-
-                return {
-                    fileList,
-                    currentPath,
-                    pathSegments,
-                    previewDialog,
-                    deleteDialog,
-                    isDragOver,
-                    uploadProgress,
-                    fileInput,
-                    folderInput,
-                    handleItemClick,
-                    navigateTo,
-                    getPathUpTo,
-                    saveFile,
-                    saveAndClose,
-                    showDeleteDialog,
-                    confirmDelete,
-                    isImageFile,
-                    isVideoFile,
-                    formatFileSize,
-                    handleFileSelect,
-                    handleFileDrop,
-                    downloadFile,
-                    previewText,
-                    // 添加图片导航相关的方法和属性
-                    hasPrevImage,
-                    hasNextImage,
-                    showPrevImage,
-                    showNextImage,
-                    handleImageKeydown,
-                    imagePreview,
-                    renameFile,
-                    copyFileLink,
-                    onTooltipHide
-                };
-            }
-        });
-
-        // Use Element Plus
-        app.use(ElementPlus);
-        // Register all icons
-        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-            app.component(key, component);
-            // console.log(key);
-        }
-        app.mount('#app');
-    </script>
+    <script src="/static/js/main.js"></script>
+    
 </body>
 </html>
