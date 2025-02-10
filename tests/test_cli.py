@@ -30,7 +30,7 @@ def test_invalid_port():
 
 def test_invalid_root():
     """测试无效根目录"""
-    result = runner.invoke(app, ["--root", "/nonexistent/path"])
+    result = runner.invoke(app, ["--directory", "/nonexistent/path"])
     assert result.exit_code == 2
     for word in "Directory '/nonexistent/path' does not exist".split():
         assert word in result.stdout
@@ -44,7 +44,7 @@ def test_server_start(temp_dir):
     """测试服务器启动"""
     with patch("servefs.cli.uvicorn.run") as mock_run:
         result = runner.invoke(app, [
-            "--root", str(temp_dir),
+            "--directory", str(temp_dir),
             "--port", "8888",
             "--host", "127.0.0.1",
             "--debug"
