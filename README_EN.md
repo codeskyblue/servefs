@@ -92,9 +92,9 @@ For development information, please check [Development Guide](DEVELOP.md).
 
 ## TODO
 
+- [x] Support file rename
+- [x] Add user authentication
 - [ ] Support file search
-- [ ] Support file rename
-- [ ] Add user authentication
 - [ ] Support file sharing
 
 ## Acknowledgements
