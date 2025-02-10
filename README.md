@@ -81,6 +81,10 @@ servefs --help
 - [ ] 添加用户认证
 - [ ] 支持文件分享
 
+## 相关项目
+- https://github.com/Densaugeo/uploadserver 如果只是要上传，下载这个应该就够了
+- https://github.com/codeskyblue/gohttpserver 我以前用Golang写的一个版本，现在的项目也是参考的这个
+
 ## 感谢
 
 - Windsurf
