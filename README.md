@@ -76,14 +76,18 @@ servefs --help
 
 ## TODO
 
-- [ ] 支持文件搜索
 - [x] 支持文件重命名
+- [x] 支持链接复制
+- [ ] 支持文件搜索
 - [ ] 添加用户认证
 - [ ] 支持文件分享
 
 ## 相关项目
 - https://github.com/Densaugeo/uploadserver 如果只是要上传，下载这个应该就够了
 - https://github.com/codeskyblue/gohttpserver 我以前用Golang写的一个版本，现在的项目也是参考的这个
+- https://github.com/sigoden/dufs Rust实现的文件服务器，支持文件预览，编辑
+- https://github.com/TheWaWaR/simple-http-server 也是Rust写的，比上面那个简单些
+- https://min.io 重量级项目，golang实现
 
 ## 感谢
 

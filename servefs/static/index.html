@@ -308,11 +308,25 @@
                                         @click.stop="renameFile(item)">
                                         <el-icon><Edit /></el-icon>
                                     </el-button>
+                                    <el-tooltip
+                                        :content="item.tooltipText"
+                                        placement="top"
+                                        effect="dark"
+                                        :show-after="100"
+                                        @hide="onTooltipHide(item)"
+                                    >
+                                        <el-button 
+                                            type="info" 
+                                            size="small" 
+                                            @click.stop="copyFileLink(item)">
+                                            <el-icon><copy-document /></el-icon>
+                                        </el-button>
+                                    </el-tooltip>
                                     <el-button 
                                         type="danger" 
                                         size="small" 
                                         @click.stop="showDeleteDialog(item)">
-                                        <el-icon><Delete /></el-icon>
+                                        <el-icon><delete /></el-icon>
                                     </el-button>
                                 </el-button-group>
                             </div>
@@ -487,7 +501,12 @@
                             ElMessage.error(data.error);
                             return;
                         }
-                        fileList.value = data.items;
+                        // 为每个文件项添加 tooltip 相关属性
+                        fileList.value = data.items.map(item => ({
+                            ...item,
+                            tooltipText: 'Copy Link',
+                            showTooltip: false
+                        }));
                         currentPath.value = data.current_path;
                     } catch (error) {
                         ElMessage.error('Failed to load files');
@@ -629,6 +648,25 @@
                     a.href = item.download_url;
                     a.download = item.name;
                     a.click();
+                };
+
+                // 复制文件链接的方法
+                const copyFileLink = async (item) => {
+                    try {
+                        const fullUrl = new URL(item.download_url, window.location.origin).href;
+                        await navigator.clipboard.writeText(fullUrl);
+                        // 更新 tooltip 文本
+                        item.tooltipText = 'Copied';
+                    } catch (error) {
+                        item.tooltipText = 'Failed to copy';
+                    }
+                };
+
+                // 处理 tooltip 隐藏事件
+                const onTooltipHide = (item) => {
+                    if (item.tooltipText !== 'Copy Link') {
+                        item.tooltipText = 'Copy Link';
+                    }
                 };
 
                 // 处理文件上传
@@ -921,7 +959,9 @@
                     showNextImage,
                     handleImageKeydown,
                     imagePreview,
-                    renameFile
+                    renameFile,
+                    copyFileLink,
+                    onTooltipHide
                 };
             }
         });
