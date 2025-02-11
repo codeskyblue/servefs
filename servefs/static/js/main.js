@@ -215,13 +215,34 @@ const app = createApp({
 
         // 复制文件链接的方法
         const copyFileLink = async (item) => {
-            try {
-                const fullUrl = new URL(item.download_url, window.location.origin).href;
-                await navigator.clipboard.writeText(fullUrl);
-                // 更新 tooltip 文本
+            const fullUrl = new URL(item.download_url, window.location.origin).href;
+            // 创建一个临时按钮用于复制
+            const button = document.createElement('button');
+            button.setAttribute('data-clipboard-text', fullUrl);
+            document.body.appendChild(button);
+            
+            // 初始化 clipboard.js
+            const clipboard = new ClipboardJS(button);
+            
+            clipboard.on('success', () => {
                 item.tooltipText = 'Copied';
-            } catch (error) {
+                ElMessage.success('Link copied to clipboard');
+                cleanup();
+            });
+            
+            clipboard.on('error', () => {
                 item.tooltipText = 'Failed to copy';
+                ElMessage.error('Failed to copy to clipboard');
+                cleanup();
+            });
+            
+            // 触发复制
+            button.click();
+            
+            // 清理函数
+            function cleanup() {
+                clipboard.destroy();
+                document.body.removeChild(button);
             }
         };
 
@@ -404,6 +425,12 @@ const app = createApp({
             }
         });
 
+        // 处理对话框关闭
+        const handleClose = (done) => {
+            previewDialog.value.visible = false;
+            done();
+        };
+
         // 图片导航相关
         const imageList = ref([]);
         const hasPrevImage = computed(() => previewDialog.value.isImage && previewDialog.value.currentImageIndex > 0);
@@ -518,40 +545,41 @@ const app = createApp({
         };
 
         return {
-            fileList,
-            currentPath,
-            pathSegments,
-            previewDialog,
-            deleteDialog,
-            isDragOver,
-            uploadProgress,
-            fileInput,
-            folderInput,
-            handleItemClick,
-            navigateTo,
-            getPathUpTo,
-            saveFile,
-            saveAndClose,
-            showDeleteDialog,
             confirmDelete,
-            isImageFile,
-            isVideoFile,
-            formatFileSize,
-            handleFileSelect,
-            handleFileDrop,
+            copyFileLink,
+            currentPath,
+            deleteDialog,
             downloadFile,
-            previewText,
+            fileInput,
+            fileList,
+            folderInput,
+            formatFileSize,
+            getPathUpTo,
+            handleClose,
+            handleFileDrop,
+            handleImageKeydown,
+            handleItemClick,
+            handleFileSelect,
             hasPrevImage,
             hasNextImage,
-            showPrevImage,
-            showNextImage,
-            handleImageKeydown,
-            imagePreview,
-            renameFile,
-            copyFileLink,
-            onTooltipHide,
             hasWritePermission,
-            login,  // 暴露登录方法
+            imagePreview,
+            isDragOver,
+            isImageFile,
+            isVideoFile,
+            login,
+            navigateTo,
+            onTooltipHide,
+            pathSegments,
+            previewDialog,
+            previewText,
+            renameFile,
+            saveAndClose,
+            saveFile,
+            showDeleteDialog,
+            showNextImage,
+            showPrevImage,
+            uploadProgress,
         };
     }
 });

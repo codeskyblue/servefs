@@ -1,8 +1,10 @@
 import mimetypes
 import shutil
+from typing import List
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+
 from ..middleware.auth import Permission
 
 router = APIRouter(prefix="/api", tags=["api"])
@@ -171,7 +173,7 @@ async def rename_file(file_path: str, request: Request):
         return {"error": str(e)}
 
 @router.post("/upload/{path:path}")
-async def upload_files(path: str, files: list[UploadFile] = File(...), paths: list[str] = Form(...), request: Request = None):
+async def upload_files(path: str, files: List[UploadFile] = File(...), paths: List[str] = Form(...), request: Request = None):
     """Upload files to the specified path"""
     try:
         target_path = request.app.state.ROOT_DIR / path

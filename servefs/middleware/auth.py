@@ -1,10 +1,10 @@
 import base64
-from typing import Optional
+from typing import Optional, Tuple
 
 from fastapi import Request
 from starlette.middleware.base import (BaseHTTPMiddleware,
                                        RequestResponseEndpoint)
-from starlette.responses import Response, JSONResponse
+from starlette.responses import JSONResponse, Response
 
 
 class Permission:
@@ -29,7 +29,7 @@ class AuthManager:
         else:
             self.auth_enabled = False
 
-    def check_auth(self, auth_header: Optional[str]) -> tuple[bool, str]:
+    def check_auth(self, auth_header: Optional[str]) -> Tuple[bool, str]:
         """检查认证信息
         返回: (是否认证成功, 权限级别)
         """

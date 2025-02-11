@@ -1,15 +1,13 @@
 import os
-import base64
 from pathlib import Path
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 
+from .middleware.auth import AuthManager, AuthMiddleware
 from .routes.api import router as api_router
 from .routes.page import init_static_files
 from .routes.page import router as page_router
-from .middleware.auth import AuthManager, AuthMiddleware
 
 # Get debug mode from environment variable
 DEBUG = os.getenv("SERVEFS_DEBUG", "false").lower() == "true"
