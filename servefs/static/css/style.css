@@ -89,6 +89,26 @@
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.heic-preview {
+    position: relative;
+    outline: none;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    max-height: 70vh;
+}
+
+.heic-preview img {
+    max-width: 100%;
+    max-height: 70vh;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .video-preview {
     text-align: center;
     display: flex;

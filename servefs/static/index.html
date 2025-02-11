@@ -179,6 +179,10 @@
                     <img :src="previewDialog.content" :alt="previewDialog.title">
                     <el-icon class="preview-nav-button preview-next" @click="showNextImage" v-if="hasNextImage"><arrow-right /></el-icon>
                 </div>
+                <!-- HEIC图片预览 -->
+                <div v-else-if="previewDialog.isHeic" class="heic-preview">
+                    <img :src="previewDialog.content" :alt="previewDialog.title">
+                </div>
                 <!-- 视频预览 -->
                 <div v-else-if="previewDialog.isVideo" class="video-preview">
                     <video controls :src="previewDialog.content">
@@ -262,7 +266,7 @@
             </template>
         </el-dialog>
     </div>
-
+    <script src="https://unpkg.com/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="/static/js/index.js"></script>
     
 </body>
