@@ -1,5 +1,5 @@
 dev:
-	npx nodemon -e "js html py" --exec "uvicorn servefs.main:app --port 7001"
+	npx nodemon -e "js html py" --exec "poetry run servefs --port 7001 -d files"
 
 auth:
 	npx nodemon -e "js html py" --exec "poetry run servefs -b foo:123 -d ./files --port 7001"
