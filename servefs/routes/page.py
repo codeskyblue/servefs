@@ -1,13 +1,19 @@
+import datetime
+import logging
 import mimetypes
 import os
+import urllib.parse
+from email.utils import format_datetime
 from pathlib import Path
-from typing import AsyncIterator, Union
+from typing import AsyncIterator, Optional, Union
 
 import aiofiles
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 
 from ..utils.static import ETaggedStaticFiles
+
+logger = logging.getLogger(__name__)
 
 # Get current module path
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -27,9 +33,28 @@ async def stream_file_range(file_path: Path, start: int, end: int) -> AsyncItera
             bytes_remaining -= len(chunk)
             yield chunk
 
+def get_content_disposition_header(filename: str, as_attachment: bool = False) -> str:
+    """Generate Content-Disposition header value with RFC 5987 compatible filename encoding
+    
+    Args:
+        filename: The filename to encode
+        as_attachment: Whether to use attachment or inline disposition
+        
+    Returns:
+        str: The properly encoded Content-Disposition header value
+    """
+    disposition_type = "attachment" if as_attachment else "inline"
+    try:
+        filename.encode('ascii')
+        return f'{disposition_type}; filename="{filename}"'
+    except UnicodeEncodeError:
+        encoded_filename = urllib.parse.quote(filename)
+        return f'{disposition_type}; filename*=UTF-8\'\'{encoded_filename}'
+
+
 async def handle_file_request(
     file_path: Path,
-    range_header: str = None,
+    range_header: Optional[str] = None,
     as_attachment: bool = False
 ) -> Union[FileResponse, StreamingResponse]:
     """处理文件请求的通用函数"""
@@ -46,11 +71,13 @@ async def handle_file_request(
             
         # 如果没有 Range 头，直接返回完整文件
         if not range_header:
-            headers = {}
-            if as_attachment:
-                headers["Content-Disposition"] = f'attachment; filename="{file_path.name}"'
-            else:
-                headers["Content-Disposition"] = f'inline; filename="{file_path.name}"'
+            headers = {
+                "Last-Modified": format_datetime(datetime.datetime.fromtimestamp(os.path.getmtime(file_path))),
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(file_size),
+            }
+            
+            headers["Content-Disposition"] = get_content_disposition_header(file_path.name, as_attachment)
                 
             return FileResponse(
                 path=file_path,
@@ -66,13 +93,14 @@ async def handle_file_request(
             
             if start >= file_size:
                 raise HTTPException(status_code=416, detail="Range not satisfiable")
-                
+            
             headers = {
                 "Content-Range": f"bytes {start}-{end}/{file_size}",
                 "Accept-Ranges": "bytes",
                 "Content-Length": str(end - start + 1),
                 "Content-Type": mime_type,
-                "Content-Disposition": "attachment" if as_attachment else "inline" + f'; filename="{file_path.name}"'
+                "Content-Disposition": get_content_disposition_header(file_path.name, as_attachment),
+                "Last-Modified": format_datetime(datetime.datetime.fromtimestamp(os.path.getmtime(file_path)))
             }
             
             return StreamingResponse(
@@ -83,8 +111,10 @@ async def handle_file_request(
             
         except (ValueError, IndexError):
             raise HTTPException(status_code=416, detail="Invalid range header")
-            
     except Exception as e:
+        logger.exception("Error processing file request")
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(status_code=500, detail=str(e))
 
 # Mount static files for direct access to static assets
@@ -108,9 +138,9 @@ async def serve_blob_path(path: str):
 async def get_raw_file(file_path: str, request: Request):
     """Get raw file content with Range support"""
     try:
-        file_path = request.app.state.ROOT_DIR / file_path
+        full_path: Path = request.app.state.ROOT_DIR / file_path
         return await handle_file_request(
-            file_path=file_path,
+            file_path=full_path,
             range_header=request.headers.get("range"),
             as_attachment=False
         )
@@ -123,9 +153,9 @@ async def get_raw_file(file_path: str, request: Request):
 async def download_file(file_path: str, request: Request):
     """Download file with Range support"""
     try:
-        file_path = request.app.state.ROOT_DIR / file_path
+        full_path: Path = request.app.state.ROOT_DIR / file_path
         return await handle_file_request(
-            file_path=file_path,
+            file_path=full_path,
             range_header=request.headers.get("range"),
             as_attachment=True
         )

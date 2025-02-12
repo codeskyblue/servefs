@@ -16,6 +16,7 @@ const app = createApp({
             editable: false,
             currentFile: null,
             isImage: false,
+            isHeic: false,
             isVideo: false,
             isText: false,
             isFont: false,
@@ -90,6 +91,11 @@ const app = createApp({
             return imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
         };
 
+        // 检查是否为HEIC/HEIF格式图片
+        const isHeicImage = (filename) => {
+            return filename.toLowerCase().endsWith('.heic') || filename.toLowerCase().endsWith('.heif');
+        };
+
         // 检查文件是否为视频
         const isVideoFile = (filename) => {
             const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.mkv', '.avi'];
@@ -112,6 +118,7 @@ const app = createApp({
                 editable: type === 'text',
                 currentFile: item,
                 isImage: type === 'image',
+                isHeic: type === 'heic',
                 isVideo: type === 'video',
                 isText: type === 'text',
                 isFont: type === 'font',
@@ -122,9 +129,49 @@ const app = createApp({
             };
         };
 
+        // 处理HEIC图片预览
+        const handleHeicPreview = async (item) => {
+            // Show loading message
+            ElMessage({
+                message: 'Converting HEIC image...',
+                type: 'info',
+                duration: 0
+            });
+            
+            try {
+                // Fetch the HEIC file
+                const response = await fetch(`/raw/${item.path}`);
+                const blob = await response.blob();
+                
+                // Convert HEIC to JPEG
+                const jpegBlob = await heic2any({
+                    blob: blob,
+                    toType: "image/jpeg",
+                    quality: 0.8
+                });
+                
+                // Create object URL for the converted image
+                const imageUrl = URL.createObjectURL(jpegBlob);
+                
+                // Close loading message
+                ElMessage.closeAll();
+                
+                return {
+                    ...createPreviewConfig(item, 'heic'),
+                    content: imageUrl
+                };
+            } catch (error) {
+                ElMessage.error('Failed to convert HEIC image');
+                console.error('HEIC conversion error:', error);
+                throw error;
+            }
+        };
+
         const openFile = async (item) => {
             try {
-                if (isImageFile(item.name)) {
+                if (isHeicImage(item.name)) {
+                    previewDialog.value = await handleHeicPreview(item);
+                } else if (isImageFile(item.name)) {
                     previewDialog.value = createPreviewConfig(item, 'image');
                 } else if (isVideoFile(item.name)) {
                     previewDialog.value = createPreviewConfig(item, 'video');
@@ -459,12 +506,30 @@ const app = createApp({
         };
 
         // 更新预览图片
-        const updatePreviewImage = (image, index) => {
+        const updatePreviewImage = async (image, index) => {
             if (image) {
                 previewDialog.value.currentImageIndex = index;
                 previewDialog.value.title = image.name;
-                previewDialog.value.content = `/raw/${image.path}`;
                 previewDialog.value.currentFile = image;
+                
+                if (isHeicImage(image.name)) {
+                    try {
+                        const previewConfig = await handleHeicPreview(image);
+                        previewDialog.value = {
+                            ...previewConfig,
+                            currentImageIndex: index
+                        };
+                    } catch (error) {
+                        // If HEIC conversion fails, fall back to raw path
+                        previewDialog.value = {
+                            ...createPreviewConfig(image, 'heic'),
+                            content: `/raw/${image.path}`,
+                            currentImageIndex: index
+                        };
+                    }
+                } else {
+                    previewDialog.value.content = `/raw/${image.path}`;
+                }
             }
         };
 
