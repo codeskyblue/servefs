@@ -145,7 +145,7 @@
                                         :show-after="300"
                                         @hide="onTooltipHide(item)">
                                         <el-button
-                                            @click.stop="copyFileLink(item)"
+                                            @click.stop="copyContent(item)"
                                             type="info"
                                             size="small">
                                             <el-icon><copy-document /></el-icon>
@@ -171,7 +171,30 @@
             width="80%"
             class="preview-dialog"
             :close-on-click-modal="false"
+            :show-close="false"
             :before-close="handleClose">
+            <template #header>
+                <div class="dialog-header">
+                    <span class="dialog-title">{{ previewDialog.title }}</span>
+                    <div class="dialog-actions">
+                        <el-button-group>
+                            <el-button size="small">
+                                <el-link :href="previewDialog.content">Raw</el-link>
+                            </el-button>
+                            <el-button size="small" @click="copyContent(previewDialog.currentFile)">
+                                <el-icon><copy-document /></el-icon>
+                            </el-button>
+                            <el-button size="small" @click="downloadFile(previewDialog.currentFile)">
+                                <el-icon><download /></el-icon>
+                            </el-button>
+                        </el-button-group>
+                        &nbsp;
+                        <el-button size="small" @click="handleClose">
+                            <el-icon><close /></el-icon>
+                        </el-button>
+                    </div>
+                </div>
+            </template>
             <div class="preview-content">
                 <!-- 图片预览 -->
                 <div v-if="previewDialog.isImage" class="image-preview" tabindex="0" ref="imagePreview" @keydown="handleImageKeydown">

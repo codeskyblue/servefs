@@ -293,6 +293,29 @@ const app = createApp({
             }
         };
 
+        // 复制文件内容到剪贴板
+        const copyContent = async (item) => {
+            try {
+                if (previewDialog.value.isImage) {
+                    // 对于图片，获取图片并复制到剪贴板
+                    const response = await fetch(`/raw/${item.path}`);
+                    const blob = await response.blob();
+                    const data = [new ClipboardItem({ [blob.type]: blob })];
+                    await navigator.clipboard.write(data);
+                    ElMessage.success('Image copied to clipboard');
+                } else if (previewDialog.value.isText) {
+                    // 对于文本文件，直接复制内容
+                    await navigator.clipboard.writeText(previewDialog.value.content);
+                    ElMessage.success('Text content copied to clipboard');
+                } else {
+                    ElMessage.warning('This file type cannot be copied to clipboard');
+                }
+            } catch (error) {
+                console.error('Failed to copy:', error);
+                ElMessage.error('Failed to copy to clipboard');
+            }
+        };
+
         // 处理 tooltip 隐藏事件
         const onTooltipHide = (item) => {
             if (item.tooltipText !== 'Copy Link') {
@@ -611,6 +634,7 @@ const app = createApp({
 
         return {
             confirmDelete,
+            copyContent,
             copyFileLink,
             currentPath,
             deleteDialog,

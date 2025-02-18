@@ -228,3 +228,9 @@
 .preview-next {
     right: 20px;
 }
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
