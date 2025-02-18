@@ -179,7 +179,7 @@
                     <div class="dialog-actions">
                         <el-button-group>
                             <el-button size="small">
-                                <el-link :href="previewDialog.content">Raw</el-link>
+                                <el-link :href="`/raw/${previewDialog.currentFile.path}`">Raw</el-link>
                             </el-button>
                             <el-button size="small" @click="copyContent(previewDialog.currentFile)">
                                 <el-icon><copy-document /></el-icon>
