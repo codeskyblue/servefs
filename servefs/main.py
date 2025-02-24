@@ -4,32 +4,29 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
+from .config import settings
 from .middleware.auth import AuthManager, AuthMiddleware
 from .routes.api import router as api_router
 from .routes.page import init_static_files
 from .routes.page import router as page_router
 
-# Get debug mode from environment variable
-DEBUG = os.getenv("SERVEFS_DEBUG", "false").lower() == "true"
-
 # Configure auth manager
 auth_manager = AuthManager()
-auth_manager.configure(os.getenv("SERVEFS_BASIC_AUTH"))
+auth_manager.configure(settings.BASIC_AUTH)
 
 # Disable docs and redoc in non-debug mode
 app = FastAPI(
     title="File Browser",
-    docs_url="/docs" if DEBUG else None,
-    redoc_url="/redoc" if DEBUG else None,
-    openapi_url="/openapi.json" if DEBUG else None,
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
+    openapi_url="/openapi.json" if settings.DEBUG else None,
 )
 
-# Get root directory from environment variable or use default
-ROOT_DIR = Path(os.getenv("SERVEFS_ROOT", "./files"))
-ROOT_DIR.mkdir(parents=True, exist_ok=True)
+# Create root directory if it doesn't exist
+settings.ROOT.mkdir(parents=True, exist_ok=True)
 
 # Set ROOT_DIR and auth_manager in app.state for use in routes
-app.state.ROOT_DIR = ROOT_DIR
+app.state.ROOT_DIR = settings.ROOT
 app.state.auth_manager = auth_manager
 
 # Add auth middleware
